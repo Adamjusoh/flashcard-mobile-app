@@ -1,9 +1,6 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
-// import 'auth_screen.dart'; // Placeholder for navigation after logout
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -59,17 +56,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
     bool confirm = await showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF2E3192),
-        title: const Text('Log Out', style: TextStyle(color: Colors.white)),
-        content: const Text('Are you sure you want to log out?', style: TextStyle(color: Colors.white70)),
+        title: const Text('Log Out'),
+        content: const Text('Are you sure you want to log out?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel', style: TextStyle(color: Colors.white)),
+            child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Log Out', style: TextStyle(color: Colors.redAccent)),
+            child: const Text('Log Out', style: TextStyle(color: Color(0xFFDC2626))),
           ),
         ],
       ),
@@ -78,163 +74,217 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (!confirm) return;
 
     await _auth.signOut();
-    // After logging out, Flutter Firebase apps typically use a StreamBuilder in main.dart 
-    // to automatically route back to the Login Screen. 
-    // Alternatively, you can push the AuthScreen directly:
-    // Navigator.of(context).pushAndRemoveUntil(
-    //   MaterialPageRoute(builder: (context) => const AuthScreen()), 
-    //   (route) => false,
-    // );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF2E3192), Color(0xFF1BAFFF)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+      backgroundColor: const Color(0xFFF8FAFC),
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Padding(
+              padding: EdgeInsets.fromLTRB(24, 24, 24, 8),
+              child: Text(
+                'Profile',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF0F172A),
+                ),
+              ),
+            ),
+            Expanded(
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator(color: Color(0xFF4F46E5)))
+                  : SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 24),
+                          // Avatar & user info section
+                          _buildUserInfoSection(),
+                          const SizedBox(height: 28),
+                          // Account section
+                          _buildSectionLabel('Account'),
+                          const SizedBox(height: 8),
+                          _buildSettingsGroup([
+                            _buildSettingsRow(
+                              icon: Icons.email_outlined,
+                              label: 'Email',
+                              value: _userEmail,
+                            ),
+                            _buildSettingsRow(
+                              icon: Icons.badge_outlined,
+                              label: 'Role',
+                              value: _userRole,
+                              valueColor: _userRole == 'Educator'
+                                  ? const Color(0xFFF59E0B)
+                                  : const Color(0xFF4F46E5),
+                            ),
+                          ]),
+                          const SizedBox(height: 28),
+                          // Actions section
+                          _buildSectionLabel('Actions'),
+                          const SizedBox(height: 8),
+                          _buildSettingsGroup([
+                            _buildSettingsRow(
+                              icon: Icons.logout_rounded,
+                              label: 'Log Out',
+                              valueColor: const Color(0xFFDC2626),
+                              isDestructive: true,
+                              onTap: _logout,
+                            ),
+                          ]),
+                          const SizedBox(height: 40),
+                        ],
+                      ),
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUserInfoSection() {
+    return Column(
+      children: [
+        // Avatar
+        CircleAvatar(
+          radius: 42,
+          backgroundColor: const Color(0xFF4F46E5),
+          child: Text(
+            _userEmail.isNotEmpty ? _userEmail[0].toUpperCase() : '?',
+            style: const TextStyle(
+              fontSize: 32,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
           ),
         ),
-        child: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Padding(
-                padding: EdgeInsets.all(24.0),
-                child: Text(
-                  'Profile',
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Center(
-                  child: _isLoading 
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                        child: _buildProfileCard(),
-                      ),
-                ),
-              ),
-            ],
+        const SizedBox(height: 16),
+        // Email
+        Text(
+          _userEmail,
+          style: const TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF0F172A),
+          ),
+        ),
+        const SizedBox(height: 8),
+        // Role Badge
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+          decoration: BoxDecoration(
+            color: _userRole == 'Educator'
+                ? const Color(0xFFFEF3C7)
+                : const Color(0xFFEEF2FF),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Text(
+            _userRole,
+            style: TextStyle(
+              color: _userRole == 'Educator'
+                  ? const Color(0xFFF59E0B)
+                  : const Color(0xFF4F46E5),
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSectionLabel(String text) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Padding(
+        padding: const EdgeInsets.only(left: 4),
+        child: Text(
+          text.toUpperCase(),
+          style: const TextStyle(
+            color: Color(0xFF94A3B8),
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 1,
           ),
         ),
       ),
     );
   }
 
-  // Glassmorphism Profile Card
-  Widget _buildProfileCard() {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(24),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(32),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.15),
-                blurRadius: 30,
-                spreadRadius: 5,
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // User Avatar Placeholder
-              Container(
-                height: 100,
-                width: 100,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withOpacity(0.2),
-                  border: Border.all(color: Colors.white.withOpacity(0.5), width: 2),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF1BFFFF).withOpacity(0.3),
-                      blurRadius: 20,
-                      spreadRadius: 5,
-                    ),
-                  ],
-                ),
-                child: const Icon(Icons.person, size: 60, color: Colors.white),
-              ),
-              const SizedBox(height: 24),
-              
-              // Email Display
-              Text(
-                _userEmail,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 8),
+  Widget _buildSettingsGroup(List<Widget> children) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        children: [
+          for (int i = 0; i < children.length; i++) ...[
+            children[i],
+            if (i < children.length - 1)
+              Divider(height: 1, color: const Color(0xFFE2E8F0), indent: 52),
+          ],
+        ],
+      ),
+    );
+  }
 
-              // Role Badge
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                decoration: BoxDecoration(
-                  color: _userRole == 'Educator' 
-                      ? Colors.orangeAccent.withOpacity(0.2) 
-                      : const Color(0xFF1BFFFF).withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: _userRole == 'Educator' 
-                        ? Colors.orangeAccent 
-                        : const Color(0xFF1BFFFF),
-                  ),
+  Widget _buildSettingsRow({
+    required IconData icon,
+    required String label,
+    String? value,
+    Color? valueColor,
+    bool isDestructive = false,
+    VoidCallback? onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              size: 20,
+              color: isDestructive ? const Color(0xFFDC2626) : const Color(0xFF64748B),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  color: isDestructive ? const Color(0xFFDC2626) : const Color(0xFF0F172A),
                 ),
+              ),
+            ),
+            if (value != null)
+              Flexible(
                 child: Text(
-                  _userRole.toUpperCase(),
+                  value,
                   style: TextStyle(
-                    color: _userRole == 'Educator' 
-                        ? Colors.orangeAccent 
-                        : const Color(0xFF1BFFFF),
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.2,
+                    fontSize: 14,
+                    color: valueColor ?? const Color(0xFF64748B),
+                    fontWeight: valueColor != null ? FontWeight.w600 : FontWeight.normal,
                   ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-              const SizedBox(height: 40),
-
-              // Logout Button
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: Colors.redAccent,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                  icon: const Icon(Icons.logout_rounded),
-                  label: const Text(
-                    'LOG OUT',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  onPressed: _logout,
-                ),
+            if (onTap != null)
+              const Padding(
+                padding: EdgeInsets.only(left: 8),
+                child: Icon(Icons.chevron_right, size: 18, color: Color(0xFF94A3B8)),
               ),
-            ],
-          ),
+          ],
         ),
       ),
     );

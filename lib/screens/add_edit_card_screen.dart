@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -81,7 +80,7 @@ class _AddEditCardScreenState extends State<AddEditCardScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(widget.cardId == null ? 'Card added!' : 'Card updated!'),
-            backgroundColor: Colors.green,
+            backgroundColor: const Color(0xFF16A34A),
           ),
         );
       }
@@ -91,7 +90,7 @@ class _AddEditCardScreenState extends State<AddEditCardScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error saving card: $e'),
-            backgroundColor: Colors.redAccent,
+            backgroundColor: const Color(0xFFDC2626),
           ),
         );
       }
@@ -110,135 +109,95 @@ class _AddEditCardScreenState extends State<AddEditCardScreen> {
     bool isEditMode = widget.cardId != null;
 
     return Scaffold(
-      extendBodyBehindAppBar: true,
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: const Color(0xFFF8FAFC),
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
         title: Text(
           isEditMode ? 'Edit Card' : 'Add New Card',
-          style: const TextStyle(color: Colors.white),
-        ),
-      ),
-      body: Container(
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF2E3192), Color(0xFF1BFFFF)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+          style: const TextStyle(
+            color: Color(0xFF0F172A),
+            fontWeight: FontWeight.w600,
           ),
         ),
-        child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
-              // 2. The Glassmorphic Form Card
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(24),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-                  child: Container(
-                    padding: const EdgeInsets.all(32),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.15),
-                          blurRadius: 30,
-                          spreadRadius: 5,
-                        ),
-                      ],
-                    ),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.library_books, size: 60, color: Colors.white),
-                          const SizedBox(height: 20),
-                          
-                          // 3. FRONT TEXT FIELD (Question)
-                          TextFormField(
-                            controller: _frontController,
-                            style: const TextStyle(color: Colors.white, fontSize: 18),
-                            maxLines: 4, // Allows for longer questions
-                            minLines: 1,
-                            textInputAction: TextInputAction.next,
-                            decoration: InputDecoration(
-                              labelText: 'Front (Question)',
-                              labelStyle: const TextStyle(color: Colors.white70),
-                              enabledBorder: UnderlineInputBorder(
-                                borderSide: BorderSide(color: Colors.white.withOpacity(0.5)),
-                              ),
-                              focusedBorder: const UnderlineInputBorder(
-                                borderSide: BorderSide(color: Colors.white, width: 2),
-                              ),
-                            ),
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return 'Please enter the front of the card.';
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 20),
-
-                          // 4. BACK TEXT FIELD (Answer)
-                          TextFormField(
-                            controller: _backController,
-                            style: const TextStyle(color: Colors.white, fontSize: 18),
-                            maxLines: 5, // Answers are usually longer
-                            minLines: 1,
-                            decoration: InputDecoration(
-                              labelText: 'Back (Answer)',
-                              labelStyle: const TextStyle(color: Colors.white70),
-                              enabledBorder: UnderlineInputBorder(
-                                borderSide: BorderSide(color: Colors.white.withOpacity(0.5)),
-                              ),
-                              focusedBorder: const UnderlineInputBorder(
-                                borderSide: BorderSide(color: Colors.white, width: 2),
-                              ),
-                            ),
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return 'Please enter the back of the card.';
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 40),
-
-                          // Save Button
-                          _isLoading
-                              ? const CircularProgressIndicator(color: Colors.white)
-                              : SizedBox(
-                                  width: double.infinity,
-                                  height: 50,
-                                  child: ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.white,
-                                      foregroundColor: const Color(0xFF2E3192),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                    ),
-                                    onPressed: _saveCard,
-                                    child: Text(
-                                      isEditMode ? 'SAVE CHANGES' : 'ADD CARD',
-                                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                ),
-                        ],
-                      ),
-                    ),
-                  ),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Front (Question) field
+              const Text(
+                'Front (Question)',
+                style: TextStyle(
+                  color: Color(0xFF0F172A),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-            ),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _frontController,
+                style: const TextStyle(color: Color(0xFF0F172A), fontSize: 16),
+                maxLines: 4,
+                minLines: 2,
+                textInputAction: TextInputAction.next,
+                decoration: const InputDecoration(
+                  hintText: 'Enter the question...',
+                  hintStyle: TextStyle(color: Color(0xFF94A3B8)),
+                ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Please enter the front of the card.';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 24),
+
+              // Back (Answer) field
+              const Text(
+                'Back (Answer)',
+                style: TextStyle(
+                  color: Color(0xFF0F172A),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _backController,
+                style: const TextStyle(color: Color(0xFF0F172A), fontSize: 16),
+                maxLines: 5,
+                minLines: 2,
+                decoration: const InputDecoration(
+                  hintText: 'Enter the answer...',
+                  hintStyle: TextStyle(color: Color(0xFF94A3B8)),
+                ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Please enter the back of the card.';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 36),
+
+              // Save Button
+              _isLoading
+                  ? const Center(child: CircularProgressIndicator(color: Color(0xFF4F46E5)))
+                  : SizedBox(
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: _saveCard,
+                        child: Text(
+                          isEditMode ? 'Save Changes' : 'Add Card',
+                        ),
+                      ),
+                    ),
+            ],
           ),
         ),
       ),

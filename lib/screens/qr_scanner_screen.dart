@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -66,7 +65,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Deck successfully copied to your library!'),
-            backgroundColor: Colors.green,
+            backgroundColor: Color(0xFF16A34A),
           ),
         );
         Navigator.pop(context);
@@ -78,7 +77,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to copy deck: ${e.toString()}'),
-            backgroundColor: Colors.redAccent,
+            backgroundColor: const Color(0xFFDC2626),
           ),
         );
       }
@@ -94,114 +93,133 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBodyBehindAppBar: true,
+      backgroundColor: const Color(0xFF1E293B),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text('Scan Community Deck',
-            style: TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-        ),
-      ),
-      body: Container(
-        // Pure gradient background replacing the full-screen camera image
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF2A7B9B), Color(0xFF3F9363)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+        title: const Text(
+          'Scan Deck QR',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
           ),
         ),
-        child: Stack(
-          children: [
-            // Center Scanner Box - The camera feed is restricted ONLY to this square
-            Align(
-              alignment: Alignment.center,
-              child: Container(
-                height: 250,
-                width: 250,
-                decoration: BoxDecoration(
-                  border: Border.all(color: const Color(0xFF1BFFFF), width: 3),
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF1BFFFF).withOpacity(0.3),
-                      blurRadius: 20,
-                      spreadRadius: 5,
-                    ),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
-                  child: MobileScanner(
-                    controller: _cameraController,
-                    onDetect: (capture) {
-                      final List<Barcode> barcodes = capture.barcodes;
-                      for (final barcode in barcodes) {
-                        if (barcode.rawValue != null && !_isProcessing) {
-                          _processScannedDeck(barcode.rawValue!);
-                        }
+      ),
+      body: Stack(
+        children: [
+          // Dark background
+          Container(color: const Color(0xFF1E293B)),
+
+          // Center Scanner Box — camera feed restricted to this square
+          Align(
+            alignment: Alignment.center,
+            child: Container(
+              height: 260,
+              width: 260,
+              decoration: BoxDecoration(
+                border: Border.all(color: const Color(0xFF4F46E5), width: 3),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(17),
+                child: MobileScanner(
+                  controller: _cameraController,
+                  onDetect: (capture) {
+                    final List<Barcode> barcodes = capture.barcodes;
+                    for (final barcode in barcodes) {
+                      if (barcode.rawValue != null && !_isProcessing) {
+                        _processScannedDeck(barcode.rawValue!);
                       }
-                    },
-                  ),
+                    }
+                  },
                 ),
               ),
             ),
+          ),
 
-            // Instruction Text
-            const Align(
-              alignment: Alignment.bottomCenter,
-              child: Padding(
-                padding: EdgeInsets.only(bottom: 150.0), // Lifted slightly above the pill bar
-                child: Text(
-                  'Position the QR code within the frame.',
-                  style: TextStyle(
+          // Corner markers for scanner feel
+          Align(
+            alignment: Alignment.center,
+            child: SizedBox(
+              height: 270,
+              width: 270,
+              child: Stack(
+                children: [
+                  // Top-left corner
+                  Positioned(top: 0, left: 0, child: _buildCorner(true, true)),
+                  // Top-right corner
+                  Positioned(top: 0, right: 0, child: _buildCorner(true, false)),
+                  // Bottom-left corner
+                  Positioned(bottom: 0, left: 0, child: _buildCorner(false, true)),
+                  // Bottom-right corner
+                  Positioned(bottom: 0, right: 0, child: _buildCorner(false, false)),
+                ],
+              ),
+            ),
+          ),
+
+          // Instruction Text
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 140.0),
+              child: Text(
+                'Position the QR code within the frame',
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.7),
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ),
+
+          // Loading Overlay when processing
+          if (_isProcessing)
+            Container(
+              color: Colors.black.withOpacity(0.6),
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.all(28),
+                  decoration: BoxDecoration(
                     color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
+                    borderRadius: BorderRadius.circular(16),
                   ),
-                ),
-              ),
-            ),
-
-            // Loading Overlay (Glassmorphism) when processing
-            if (_isProcessing)
-              Container(
-                color: Colors.black.withOpacity(0.4),
-                child: Center(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                      child: Container(
-                        height: 150,
-                        width: 200,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.white.withOpacity(0.3)),
-                        ),
-                        child: const Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            CircularProgressIndicator(color: Color(0xFF1BFFFF)),
-                            SizedBox(height: 20),
-                            Text(
-                              'Duplicating Deck...',
-                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                            ),
-                          ],
+                  child: const Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CircularProgressIndicator(color: Color(0xFF4F46E5)),
+                      SizedBox(height: 20),
+                      Text(
+                        'Copying deck...',
+                        style: TextStyle(
+                          color: Color(0xFF0F172A),
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
                         ),
                       ),
-                    ),
+                    ],
                   ),
                 ),
               ),
-          ],
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCorner(bool isTop, bool isLeft) {
+    return Container(
+      width: 24,
+      height: 24,
+      decoration: BoxDecoration(
+        border: Border(
+          top: isTop ? const BorderSide(color: Colors.white, width: 3) : BorderSide.none,
+          bottom: !isTop ? const BorderSide(color: Colors.white, width: 3) : BorderSide.none,
+          left: isLeft ? const BorderSide(color: Colors.white, width: 3) : BorderSide.none,
+          right: !isLeft ? const BorderSide(color: Colors.white, width: 3) : BorderSide.none,
         ),
       ),
     );

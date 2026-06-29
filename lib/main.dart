@@ -29,13 +29,73 @@ class RecallApp extends StatelessWidget {
       title: 'Recall - Smart Flashcards',
       debugShowCheckedModeBanner: false, // Removes the red 'DEBUG' banner
 
-      // Set a default theme that matches our Glassmorphism aesthetic
+      // Clean, modern light theme
       theme: ThemeData(
-        primaryColor: const Color(0xFF1BFFFF),
-        scaffoldBackgroundColor: const Color(0xFF2E3192),
-        fontFamily: 'Roboto', // You can change this to any Google Font
-        colorScheme: ColorScheme.fromSwatch().copyWith(
-          secondary: const Color(0xFF1BFFFF), // Accent color
+        useMaterial3: true,
+        brightness: Brightness.light,
+        fontFamily: 'Roboto',
+        scaffoldBackgroundColor: const Color(0xFFF8FAFC),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF4F46E5),
+          brightness: Brightness.light,
+          primary: const Color(0xFF4F46E5),
+          onPrimary: Colors.white,
+          surface: Colors.white,
+          onSurface: const Color(0xFF0F172A),
+          error: const Color(0xFFDC2626),
+        ),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFFF8FAFC),
+          foregroundColor: Color(0xFF0F172A),
+          elevation: 0,
+          scrolledUnderElevation: 0.5,
+        ),
+        cardTheme: CardThemeData(
+          elevation: 1,
+          color: Colors.white,
+          surfaceTintColor: Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: const Color(0xFFF1F5F9),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Color(0xFF4F46E5), width: 2),
+          ),
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Color(0xFFDC2626)),
+          ),
+          labelStyle: const TextStyle(color: Color(0xFF64748B)),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF4F46E5),
+            foregroundColor: Colors.white,
+            elevation: 0,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          ),
+        ),
+        textButtonTheme: TextButtonThemeData(
+          style: TextButton.styleFrom(
+            foregroundColor: const Color(0xFF4F46E5),
+          ),
         ),
       ),
 
@@ -46,9 +106,9 @@ class RecallApp extends StatelessWidget {
           // 1. If the app is still checking Firebase, show a loading spinner
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Scaffold(
-              backgroundColor: Color(0xFF2E3192),
+              backgroundColor: Color(0xFFF8FAFC),
               body: Center(
-                child: CircularProgressIndicator(color: Colors.white),
+                child: CircularProgressIndicator(color: Color(0xFF4F46E5)),
               ),
             );
           }

@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -91,28 +90,25 @@ class _StudyScreenState extends State<StudyScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBodyBehindAppBar: true,
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: const Color(0xFFF8FAFC),
         elevation: 0,
-        title: Text(widget.deckTitle, style: const TextStyle(color: Colors.white)),
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF2E3192), Color(0xFF1BFFFF)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+        title: Text(
+          widget.deckTitle,
+          style: const TextStyle(
+            color: Color(0xFF0F172A),
+            fontSize: 17,
+            fontWeight: FontWeight.w600,
           ),
         ),
-        child: SafeArea(
-          child: _isLoading
-              ? const Center(child: CircularProgressIndicator(color: Colors.white))
-              : _allCards.isEmpty
-              ? _buildEmptyState()
-              : _buildStudyInterface(),
-        ),
+      ),
+      body: SafeArea(
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator(color: Color(0xFF4F46E5)))
+            : _allCards.isEmpty
+            ? _buildEmptyState()
+            : _buildStudyInterface(),
       ),
     );
   }
@@ -122,21 +118,27 @@ class _StudyScreenState extends State<StudyScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.style, size: 80, color: Colors.white54),
-          const SizedBox(height: 20),
+          Icon(Icons.style_outlined, size: 64, color: const Color(0xFF94A3B8)),
+          const SizedBox(height: 16),
           const Text(
-            "This deck is empty!",
-            style: TextStyle(fontSize: 24, color: Colors.white, fontWeight: FontWeight.bold),
+            'This deck is empty!',
+            style: TextStyle(fontSize: 20, color: Color(0xFF0F172A), fontWeight: FontWeight.w600),
           ),
-          const SizedBox(height: 30),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: const Color(0xFF2E3192),
+          const SizedBox(height: 8),
+          const Text(
+            'Add some cards to start studying.',
+            style: TextStyle(fontSize: 14, color: Color(0xFF64748B)),
+          ),
+          const SizedBox(height: 28),
+          OutlinedButton(
+            style: OutlinedButton.styleFrom(
+              foregroundColor: const Color(0xFF4F46E5),
+              side: const BorderSide(color: Color(0xFF4F46E5)),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             ),
             onPressed: () => Navigator.pop(context),
-            child: const Text("Go Back"),
-          )
+            child: const Text('Go Back'),
+          ),
         ],
       ),
     );
@@ -146,51 +148,64 @@ class _StudyScreenState extends State<StudyScreen> {
     // Check if we finished all cards in the deck
     if (_currentIndex >= _allCards.length) {
       return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.emoji_events_rounded, size: 80, color: Colors.amber),
-            const SizedBox(height: 20),
-            const Text(
-              "Deck Completed!",
-              style: TextStyle(fontSize: 24, color: Colors.white, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              "You reviewed all ${_allCards.length} cards.",
-              style: TextStyle(fontSize: 16, color: Colors.white.withOpacity(0.8)),
-            ),
-            const SizedBox(height: 30),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white.withOpacity(0.2),
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                  ),
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text("Exit"),
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                height: 80,
+                width: 80,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFEF3C7),
+                  borderRadius: BorderRadius.circular(20),
                 ),
-                const SizedBox(width: 16),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: const Color(0xFF2E3192),
+                child: const Icon(Icons.emoji_events_rounded, size: 44, color: Color(0xFFF59E0B)),
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                'Deck Completed!',
+                style: TextStyle(fontSize: 24, color: Color(0xFF0F172A), fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'You reviewed all ${_allCards.length} cards.',
+                style: const TextStyle(fontSize: 16, color: Color(0xFF64748B)),
+              ),
+              const SizedBox(height: 32),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFF64748B),
+                      side: const BorderSide(color: Color(0xFFE2E8F0)),
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    ),
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Exit'),
                   ),
-                  onPressed: () {
-                    // Restart the session
-                    setState(() {
-                      _currentIndex = 0;
-                      _isFlipped = false;
-                    });
-                  },
-                  child: const Text("Study Again"),
-                ),
-              ],
-            )
-          ],
+                  const SizedBox(width: 12),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF4F46E5),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    ),
+                    onPressed: () {
+                      // Restart the session
+                      setState(() {
+                        _currentIndex = 0;
+                        _isFlipped = false;
+                      });
+                    },
+                    child: const Text('Study Again'),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -200,19 +215,37 @@ class _StudyScreenState extends State<StudyScreen> {
 
     return Column(
       children: [
-        // Progress Indicator
+        // Progress bar + counter
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 10),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8),
+          child: Column(
             children: [
-              Text(
-                "Card ${_currentIndex + 1} of ${_allCards.length}",
-                style: const TextStyle(color: Colors.white70, fontSize: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Card ${_currentIndex + 1} of ${_allCards.length}',
+                    style: const TextStyle(color: Color(0xFF64748B), fontSize: 13, fontWeight: FontWeight.w500),
+                  ),
+                  Text(
+                    _getDifficultyLabel(currentCard['easeFactor'] ?? 2.5),
+                    style: TextStyle(
+                      color: _getDifficultyColor(currentCard['easeFactor'] ?? 2.5),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
               ),
-              Text(
-                "Difficulty: ${_getDifficultyLabel(currentCard['easeFactor'] ?? 2.5)}",
-                style: const TextStyle(color: Colors.white54, fontSize: 14),
+              const SizedBox(height: 8),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: LinearProgressIndicator(
+                  value: (_currentIndex + 1) / _allCards.length,
+                  backgroundColor: const Color(0xFFE2E8F0),
+                  valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF4F46E5)),
+                  minHeight: 4,
+                ),
               ),
             ],
           ),
@@ -229,12 +262,12 @@ class _StudyScreenState extends State<StudyScreen> {
           background: Container(
             alignment: Alignment.centerLeft,
             padding: const EdgeInsets.only(left: 40.0),
-            child: const Column(
+            child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.cancel_outlined, color: Colors.redAccent, size: 50),
-                SizedBox(height: 8),
-                Text("HARD", style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+                Icon(Icons.replay_rounded, color: const Color(0xFFDC2626).withOpacity(0.7), size: 44),
+                const SizedBox(height: 6),
+                Text('AGAIN', style: TextStyle(color: const Color(0xFFDC2626).withOpacity(0.7), fontWeight: FontWeight.bold, fontSize: 13)),
               ],
             ),
           ),
@@ -243,12 +276,12 @@ class _StudyScreenState extends State<StudyScreen> {
           secondaryBackground: Container(
             alignment: Alignment.centerRight,
             padding: const EdgeInsets.only(right: 40.0),
-            child: const Column(
+            child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.check_circle_outline, color: Colors.greenAccent, size: 50),
-                SizedBox(height: 8),
-                Text("EASY", style: TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold)),
+                Icon(Icons.check_circle_outline_rounded, color: const Color(0xFF16A34A).withOpacity(0.7), size: 44),
+                const SizedBox(height: 6),
+                Text('EASY', style: TextStyle(color: const Color(0xFF16A34A).withOpacity(0.7), fontWeight: FontWeight.bold, fontSize: 13)),
               ],
             ),
           ),
@@ -292,137 +325,142 @@ class _StudyScreenState extends State<StudyScreen> {
 
         const Spacer(),
 
-        // 4. Instructional text or Bottom Action Bar
+        // 4. Rating buttons — always visible after flip
         AnimatedOpacity(
           opacity: _isFlipped ? 1.0 : 0.0,
-          duration: const Duration(milliseconds: 300),
+          duration: const Duration(milliseconds: 200),
           child: IgnorePointer(
             ignoring: !_isFlipped,
             child: Padding(
-              padding: const EdgeInsets.only(bottom: 20.0, left: 24, right: 24),
-              child: Column(
+              padding: const EdgeInsets.only(bottom: 16.0, left: 20, right: 20),
+              child: Row(
                 children: [
-                  Text(
-                    "Swipe Left for EASY • Swipe Right for HARD",
-                    style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 12),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _buildGradeButton(0, "Hard", Colors.redAccent),
-                      _buildGradeButton(1, "Good", Colors.orangeAccent),
-                      _buildGradeButton(2, "Easy", Colors.greenAccent),
-                    ],
-                  ),
+                  Expanded(child: _buildGradeButton(0, 'Again', const Color(0xFFDC2626))),
+                  const SizedBox(width: 10),
+                  Expanded(child: _buildGradeButton(1, 'Good', const Color(0xFFF59E0B))),
+                  const SizedBox(width: 10),
+                  Expanded(child: _buildGradeButton(2, 'Easy', const Color(0xFF16A34A))),
                 ],
               ),
             ),
           ),
         ),
-        const SizedBox(height: 20),
+
+        // Tap hint when not flipped
+        if (!_isFlipped)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 24.0),
+            child: Text(
+              'Tap card to reveal answer',
+              style: TextStyle(color: const Color(0xFF94A3B8), fontSize: 13),
+            ),
+          ),
+
+        const SizedBox(height: 8),
       ],
     );
   }
 
-  // Helper widget to construct the Glassmorphism card faces
+  // Helper widget to construct clean card faces
   Widget _buildCardFace(String text, {required bool isFront}) {
     return Container(
-      width: MediaQuery.of(context).size.width * 0.85,
-      height: 450, // Made slightly taller for better swiping real estate
+      width: MediaQuery.of(context).size.width * 0.88,
+      height: 420,
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(isFront ? 0.1 : 0.2),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withOpacity(0.3), width: 1.5),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.15),
-            blurRadius: 30,
-            spreadRadius: 5,
-          ),
-          BoxShadow(
-            color: Colors.white.withOpacity(0.05),
-            blurRadius: 10,
-            spreadRadius: -2,
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-          child: Stack(
-            children: [
-              Positioned(
-                top: 20,
-                left: 0,
-                right: 0,
-                child: Center(
-                  child: Text(
-                    isFront ? "FRONT" : "BACK",
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.5),
-                      letterSpacing: 2,
-                      fontWeight: FontWeight.bold,
-                    ),
+      child: Stack(
+        children: [
+          // Label
+          Positioned(
+            top: 20,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                decoration: BoxDecoration(
+                  color: isFront
+                      ? const Color(0xFF4F46E5).withOpacity(0.08)
+                      : const Color(0xFF16A34A).withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  isFront ? 'QUESTION' : 'ANSWER',
+                  style: TextStyle(
+                    color: isFront ? const Color(0xFF4F46E5) : const Color(0xFF16A34A),
+                    letterSpacing: 1.5,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 11,
                   ),
                 ),
               ),
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Text(
-                    text,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                bottom: 20,
-                left: 0,
-                right: 0,
-                child: Center(
-                  child: Text(
-                    "Tap to flip",
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.5),
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
+          // Content
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 28.0, vertical: 60),
+              child: Text(
+                text,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF0F172A),
+                  height: 1.4,
+                ),
+              ),
+            ),
+          ),
+          // Tap hint
+          Positioned(
+            bottom: 20,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Text(
+                'Tap to flip',
+                style: TextStyle(
+                  color: const Color(0xFF94A3B8),
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildGradeButton(int grade, String label, Color color) {
-    return GestureDetector(
-      onTap: () => _handleGrade(grade),
-      child: Container(
-        height: 50,
-        width: 80,
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.2),
-          border: Border.all(color: color.withOpacity(0.8), width: 2),
-          borderRadius: BorderRadius.circular(16),
+    return SizedBox(
+      height: 52,
+      child: ElevatedButton(
+        onPressed: () => _handleGrade(grade),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: color.withOpacity(0.1),
+          foregroundColor: color,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: color.withOpacity(0.3), width: 1.5),
+          ),
         ),
-        child: Center(
-          child: Text(
-            label,
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
-              shadows: [Shadow(color: color, blurRadius: 5)],
-            ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: 15,
           ),
         ),
       ),
@@ -430,8 +468,14 @@ class _StudyScreenState extends State<StudyScreen> {
   }
 
   String _getDifficultyLabel(double easeFactor) {
-    if (easeFactor < 2.0) return "Hard";
-    if (easeFactor > 2.6) return "Easy";
-    return "Normal";
+    if (easeFactor < 2.0) return 'Hard';
+    if (easeFactor > 2.6) return 'Easy';
+    return 'Normal';
+  }
+
+  Color _getDifficultyColor(double easeFactor) {
+    if (easeFactor < 2.0) return const Color(0xFFDC2626);
+    if (easeFactor > 2.6) return const Color(0xFF16A34A);
+    return const Color(0xFFF59E0B);
   }
 }

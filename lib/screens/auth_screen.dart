@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -63,7 +62,7 @@ class _AuthScreenState extends State<AuthScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(message),
-          backgroundColor: Colors.redAccent,
+          backgroundColor: const Color(0xFFDC2626),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -77,71 +76,84 @@ class _AuthScreenState extends State<AuthScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // 1. Background Gradient to make the Glass effect pop
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF2E3192), Color(0xFF1BFFFF)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-        child: Center(
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              // 2. The Glassmorphism Card
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(24),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-                  child: Container(
-                    padding: const EdgeInsets.all(32),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 30,
-                          spreadRadius: 5,
-                        ),
-                        // Soft glow effect
-                        BoxShadow(
-                          color: Colors.white.withOpacity(0.1),
-                          blurRadius: 20,
-                          spreadRadius: -5,
-                        ),
-                      ],
-                    ),
+      backgroundColor: const Color(0xFFF8FAFC),
+      body: Center(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // App branding
+                Container(
+                  height: 72,
+                  width: 72,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF4F46E5),
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: const Icon(Icons.bolt_rounded, size: 40, color: Colors.white),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Recall',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF0F172A),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Smart Flashcards',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF64748B),
+                  ),
+                ),
+                const SizedBox(height: 40),
+
+                // Auth Card
+                Card(
+                  elevation: 2,
+                  shadowColor: Colors.black.withOpacity(0.08),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(28),
                     child: Form(
                       key: _formKey,
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Text(
                             _isLogin ? 'Welcome Back' : 'Create Account',
                             style: const TextStyle(
-                              fontSize: 28,
+                              fontSize: 24,
                               fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                              color: Color(0xFF0F172A),
                             ),
                           ),
-                          const SizedBox(height: 20),
-                          
+                          const SizedBox(height: 8),
+                          Text(
+                            _isLogin
+                                ? 'Sign in to continue studying'
+                                : 'Get started with Recall',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFF64748B),
+                            ),
+                          ),
+                          const SizedBox(height: 28),
+
                           // Email Field with Validation
                           TextFormField(
-                            style: const TextStyle(color: Colors.white),
-                            decoration: InputDecoration(
+                            style: const TextStyle(color: Color(0xFF0F172A)),
+                            decoration: const InputDecoration(
                               labelText: 'Email Address',
-                              labelStyle: const TextStyle(color: Colors.white70),
-                              enabledBorder: UnderlineInputBorder(
-                                borderSide: BorderSide(color: Colors.white.withOpacity(0.5)),
-                              ),
-                              focusedBorder: const UnderlineInputBorder(
-                                borderSide: BorderSide(color: Colors.white),
-                              ),
+                              prefixIcon: Icon(Icons.email_outlined, size: 20),
                             ),
                             keyboardType: TextInputType.emailAddress,
                             validator: (value) {
@@ -156,16 +168,10 @@ class _AuthScreenState extends State<AuthScreen> {
 
                           // Password Field with Validation
                           TextFormField(
-                            style: const TextStyle(color: Colors.white),
-                            decoration: InputDecoration(
+                            style: const TextStyle(color: Color(0xFF0F172A)),
+                            decoration: const InputDecoration(
                               labelText: 'Password',
-                              labelStyle: const TextStyle(color: Colors.white70),
-                              enabledBorder: UnderlineInputBorder(
-                                borderSide: BorderSide(color: Colors.white.withOpacity(0.5)),
-                              ),
-                              focusedBorder: const UnderlineInputBorder(
-                                borderSide: BorderSide(color: Colors.white),
-                              ),
+                              prefixIcon: Icon(Icons.lock_outline, size: 20),
                             ),
                             obscureText: true,
                             validator: (value) {
@@ -176,19 +182,14 @@ class _AuthScreenState extends State<AuthScreen> {
                             },
                             onSaved: (value) => _password = value!,
                           ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 16),
 
                           // Role Selection (Only visible during Registration)
                           if (!_isLogin)
                             DropdownButtonFormField<String>(
-                              dropdownColor: const Color(0xFF2E3192),
-                              style: const TextStyle(color: Colors.white),
-                              decoration: InputDecoration(
+                              decoration: const InputDecoration(
                                 labelText: 'I am a...',
-                                labelStyle: const TextStyle(color: Colors.white70),
-                                enabledBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.white.withOpacity(0.5)),
-                                ),
+                                prefixIcon: Icon(Icons.person_outline, size: 20),
                               ),
                               value: _role,
                               items: ['Student', 'Educator'].map((String role) {
@@ -199,27 +200,24 @@ class _AuthScreenState extends State<AuthScreen> {
                               }).toList(),
                               onChanged: (value) => setState(() => _role = value!),
                             ),
-                          
-                          const SizedBox(height: 30),
+
+                          const SizedBox(height: 28),
 
                           // Submit Button
                           if (_isLoading)
-                            const CircularProgressIndicator(color: Colors.white)
+                            const Center(
+                              child: CircularProgressIndicator(color: Color(0xFF4F46E5)),
+                            )
                           else
-                            ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.white,
-                                foregroundColor: const Color(0xFF2E3192),
-                                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
+                            SizedBox(
+                              height: 50,
+                              child: ElevatedButton(
+                                onPressed: _submitAuthForm,
+                                child: Text(_isLogin ? 'Sign In' : 'Create Account'),
                               ),
-                              onPressed: _submitAuthForm,
-                              child: Text(_isLogin ? 'LOGIN' : 'SIGN UP', style: const TextStyle(fontWeight: FontWeight.bold)),
                             ),
-                          
-                          const SizedBox(height: 10),
+
+                          const SizedBox(height: 12),
 
                           // Toggle Mode Button
                           TextButton(
@@ -230,15 +228,15 @@ class _AuthScreenState extends State<AuthScreen> {
                             },
                             child: Text(
                               _isLogin ? 'Create new account' : 'I already have an account',
-                              style: const TextStyle(color: Colors.white70),
+                              style: const TextStyle(fontSize: 14),
                             ),
-                          )
+                          ),
                         ],
                       ),
                     ),
                   ),
                 ),
-              ),
+              ],
             ),
           ),
         ),
