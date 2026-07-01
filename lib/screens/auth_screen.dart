@@ -189,17 +189,10 @@ class _AuthScreenState extends State<AuthScreen> {
                           // Username Field (Only visible during Registration)
                           if (!_isLogin)
                             TextFormField(
-                              style: const TextStyle(color: Colors.white),
-                              decoration: InputDecoration(
+                              style: const TextStyle(color: Color(0xFF0F172A)),
+                              decoration: const InputDecoration(
                                 labelText: 'Username',
-                                labelStyle: const TextStyle(color: Colors.white70),
-                                enabledBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.white.withOpacity(0.5)),
-                                ),
-                                focusedBorder: const UnderlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.white),
-                                ),
-                                errorStyle: const TextStyle(color: Colors.yellowAccent),
+                                prefixIcon: Icon(Icons.alternate_email_rounded, size: 20),
                               ),
                               validator: (value) {
                                 if (!_isLogin) {

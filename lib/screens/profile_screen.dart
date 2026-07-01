@@ -14,6 +14,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   
   String _userEmail = '';
+  String _username = '';
   String _userRole = 'Loading...';
   bool _isLoading = true;
 
@@ -36,6 +37,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         if (userDoc.exists) {
           setState(() {
             _userRole = userDoc.data()?['role'] ?? 'Student';
+            _username = userDoc.data()?['username'] ?? '';
           });
         }
       } catch (e) {
@@ -165,9 +167,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        // Email
+        // Username
         Text(
-          _userEmail,
+          _username.isNotEmpty ? '@$_username' : _userEmail,
           style: const TextStyle(
             fontSize: 17,
             fontWeight: FontWeight.w600,

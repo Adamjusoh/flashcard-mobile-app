@@ -39,25 +39,16 @@ class QRDisplayScreen extends StatelessWidget {
                   ),
                   child: const Icon(Icons.qr_code_scanner_rounded, size: 30, color: Color(0xFF4F46E5)),
                 ),
-                const SizedBox(height: 20),
-                const Text(
-                  'Have students scan this',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF0F172A),
-                  ),
-                ),
-                const SizedBox(height: 8),
+                  const SizedBox(height: 20),
                 Text(
                   username.isNotEmpty
                       ? 'Shared by $username'
                       : 'Scan to receive a private copy of this deck.',
                   textAlign: TextAlign.center,
                   style: const TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF64748B),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF0F172A),
                     height: 1.4,
                   ),
                 ),
