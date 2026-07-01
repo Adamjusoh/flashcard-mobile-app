@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -74,7 +73,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Deck saved to your library!'),
-            backgroundColor: Colors.green,
+            backgroundColor: Color(0xFF16A34A),
           ),
         );
       }
@@ -83,7 +82,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to download deck: $e'),
-            backgroundColor: Colors.redAccent,
+            backgroundColor: const Color(0xFFDC2626),
           ),
         );
       }
@@ -97,101 +96,98 @@ class _CommunityScreenState extends State<CommunityScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF2E3192), Color(0xFF1BAFFF)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Padding(
-                padding: EdgeInsets.all(24.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Explore',
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
+      backgroundColor: const Color(0xFFF8FAFC),
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Explore',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF0F172A),
                     ),
-                    SizedBox(height: 8),
-                    Text(
-                      'Discover public decks shared by Educators.',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.white70,
-                      ),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Discover public decks shared by Educators.',
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: Color(0xFF64748B),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              Expanded(
-                // READ OPERATION: Querying only public decks
-                child: StreamBuilder<QuerySnapshot>(
-                  stream: FirebaseFirestore.instance
-                      .collection('decks')
-                      .where('isPublic', isEqualTo: true)
-                      // Optional: Exclude the user's own public decks if they are an educator
-                      // .where('authorId', isNotEqualTo: _currentUserId) 
-                      .snapshots(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(
-                          child: CircularProgressIndicator(color: Colors.white));
-                    }
+            ),
+            const SizedBox(height: 8),
+            Expanded(
+              // READ OPERATION: Querying only public decks
+              child: StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('decks')
+                    .where('isPublic', isEqualTo: true)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                        child: CircularProgressIndicator(color: Color(0xFF4F46E5)));
+                  }
 
-                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                      return const Center(
-                        child: Text(
-                          'No public decks available right now.',
-                          style: TextStyle(color: Colors.white70, fontSize: 18),
-                        ),
-                      );
-                    }
-
-                    final publicDecks = snapshot.data!.docs;
-
-                    return ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                      itemCount: publicDecks.length,
-                      itemBuilder: (context, index) {
-                        var deckData = publicDecks[index].data() as Map<String, dynamic>;
-                        String deckId = publicDecks[index].id;
-                        String title = deckData['title'] ?? 'Untitled Deck';
-                        
-                        String authorId = deckData['authorId'] ?? '';
-
-                        // Don't show the download button if the user actually created this public deck
-                        bool isOwner = deckData['authorId'] == _currentUserId;
-
-                        return _buildCommunityGlassCard(
-                          title: title,
-                          deckId: deckId,
-                          authorId: authorId,
-                          isOwner: isOwner,
-                        );
-                      },
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.explore_outlined, size: 56, color: const Color(0xFF94A3B8)),
+                          const SizedBox(height: 12),
+                          const Text(
+                            'No public decks available right now.',
+                            style: TextStyle(color: Color(0xFF64748B), fontSize: 15),
+                          ),
+                        ],
+                      ),
                     );
-                  },
-                ),
+                  }
+
+                  final publicDecks = snapshot.data!.docs;
+
+                  return ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                    itemCount: publicDecks.length,
+                    itemBuilder: (context, index) {
+                      var deckData = publicDecks[index].data() as Map<String, dynamic>;
+                      String deckId = publicDecks[index].id;
+                      String title = deckData['title'] ?? 'Untitled Deck';
+                      String authorId = deckData['authorId'] ?? '';
+                      
+                      // Don't show the download button if the user actually created this public deck
+                      bool isOwner = deckData['authorId'] == _currentUserId;
+
+                      return _buildCommunityCard(
+                        title: title,
+                        deckId: deckId,
+                        authorId: authorId,
+                        isOwner: isOwner,
+                      );
+                    },
+                  );
+                },
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  // Custom Widget for the 3D Soft Glow Glassmorphism Community Card
-  Widget _buildCommunityGlassCard({
+  // Clean community deck card
+  Widget _buildCommunityCard({
     required String title,
     required String deckId,
     required String authorId,
@@ -200,95 +196,96 @@ class _CommunityScreenState extends State<CommunityScreen> {
     bool isDownloading = _downloadingDeckId == deckId;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.15),
-                  blurRadius: 20,
-                  spreadRadius: 2,
+      padding: const EdgeInsets.only(bottom: 10.0),
+      child: Card(
+        elevation: 0,
+        color: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: const BorderSide(color: Color(0xFFE2E8F0), width: 1),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+          child: Row(
+            children: [
+              // Icon
+              Container(
+                height: 44,
+                width: 44,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF0ABFC).withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(11),
                 ),
-                BoxShadow(
-                  color: Colors.white.withOpacity(0.05),
-                  blurRadius: 10,
-                  spreadRadius: -2,
-                ),
-              ],
-            ),
-            child: ListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              title: Text(
-                title,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+                child: const Icon(Icons.public_rounded, color: Color(0xFFA855F7), size: 22),
               ),
-              subtitle: Padding(
-                padding: const EdgeInsets.only(top: 8.0),
-                child: FutureBuilder<String>(
-                  future: _fetchUsername(authorId),
-                  builder: (context, snapshot) {
-                    final username = snapshot.data ?? '...';
-                    return Row(
-                      children: [
-                        Icon(Icons.person_outline, color: Colors.white.withOpacity(0.7), size: 16),
-                        const SizedBox(width: 6),
-                        Text(
-                          'by $username',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.9),
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Icon(Icons.public, color: Colors.white.withOpacity(0.5), size: 14),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Community Deck',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.6),
+              const SizedBox(width: 14),
+              // Title and label
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        color: Color(0xFF0F172A),
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    FutureBuilder<String>(
+                      future: _fetchUsername(authorId),
+                      builder: (context, snapshot) {
+                        final username = snapshot.data ?? '...';
+                        return Text(
+                          'by $username · Community Deck',
+                          style: const TextStyle(
+                            color: Color(0xFF64748B),
                             fontSize: 13,
                           ),
-                        ),
-                      ],
-                    );
-                  },
+                        );
+                      },
+                    ),
+                  ],
                 ),
               ),
-              trailing: isOwner 
-                ? const Tooltip(
-                    message: "You own this deck",
-                    child: Icon(Icons.person, color: Colors.white54),
-                  )
-                : IconButton(
-                    icon: isDownloading
-                        ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              color: Color(0xFF1BFFFF),
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : const Icon(
-                            Icons.download_rounded,
-                            color: Color(0xFF1BFFFF),
-                            size: 28,
-                          ),
-                    onPressed: isDownloading ? null : () => _downloadDeck(deckId, title),
+              // Action
+              if (isOwner)
+                Tooltip(
+                  message: 'You own this deck',
+                  child: Container(
+                    height: 36,
+                    width: 36,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.person_rounded, color: Color(0xFF94A3B8), size: 18),
                   ),
-            ),
+                )
+              else
+                SizedBox(
+                  height: 36,
+                  width: 36,
+                  child: isDownloading
+                      ? const Padding(
+                          padding: EdgeInsets.all(6),
+                          child: CircularProgressIndicator(
+                            color: Color(0xFF4F46E5),
+                            strokeWidth: 2.5,
+                          ),
+                        )
+                      : IconButton(
+                          padding: EdgeInsets.zero,
+                          icon: const Icon(
+                            Icons.download_rounded,
+                            color: Color(0xFF4F46E5),
+                            size: 22,
+                          ),
+                          onPressed: () => _downloadDeck(deckId, title),
+                        ),
+                ),
+            ],
           ),
         ),
       ),

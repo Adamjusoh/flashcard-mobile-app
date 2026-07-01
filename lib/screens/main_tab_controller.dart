@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 
 // Import all the screens we built so the tabs actually work
@@ -26,78 +25,70 @@ class _MainTabControllerState extends State<MainTabController> {
     const ProfileScreen(),
   ];
 
-  // The Glassmorphic Bottom Sheet for the '+' button
+  // The clean Bottom Sheet for the '+' button
   void _showCreateOptions(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent, // Required for the blur effect to show
-      isScrollControlled: true, // Allows the sheet to size itself properly
-      useSafeArea: true, // Prevents awkward jumping around the system navigation bar
+      backgroundColor: Colors.white,
+      isScrollControlled: true,
+      useSafeArea: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (BuildContext context) {
-        return ClipRRect(
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-            child: Container(
-              padding: const EdgeInsets.only(top: 12, left: 24, right: 24, bottom: 24),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.15),
-                // Removed the harsh top border that was causing the white line
+        return Padding(
+          padding: const EdgeInsets.only(top: 8, left: 20, right: 20, bottom: 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min, // Hugs the content tightly
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Drag handle
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 20),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE2E8F0),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min, // Hugs the content tightly
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Smooth native-looking drag handle at the top
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 5,
-                      margin: const EdgeInsets.only(bottom: 20),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.4),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  ),
-                  const Text(
-                    'Create',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  _buildBottomSheetOption(
-                    icon: Icons.style,
-                    title: 'New Deck',
-                    subtitle: 'Create a brand new stack of flashcards',
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const AddEditDeckScreen()));
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  _buildBottomSheetOption(
-                    icon: Icons.add_to_photos,
-                    title: 'Add Card to Existing',
-                    subtitle: 'Quickly add a card to a current deck',
-                    onTap: () {
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Open a deck in your Library to add cards to it.'),
-                          behavior: SnackBarBehavior.floating,
-                          backgroundColor: Color(0xFF2E3192),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                ],
+              const Text(
+                'Create',
+                style: TextStyle(
+                  color: Color(0xFF0F172A),
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
+              const SizedBox(height: 16),
+              _buildBottomSheetOption(
+                icon: Icons.style_outlined,
+                title: 'New Deck',
+                subtitle: 'Create a brand new stack of flashcards',
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const AddEditDeckScreen()));
+                },
+              ),
+              const SizedBox(height: 8),
+              _buildBottomSheetOption(
+                icon: Icons.add_card_outlined,
+                title: 'Add Card to Existing',
+                subtitle: 'Quickly add a card to a current deck',
+                onTap: () {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Open a deck in your Library to add cards to it.'),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 12),
+            ],
           ),
         );
       },
@@ -106,28 +97,39 @@ class _MainTabControllerState extends State<MainTabController> {
 
   // Helper widget for the bottom sheet options
   Widget _buildBottomSheetOption({required IconData icon, required String title, required String subtitle, required VoidCallback onTap}) {
-    return GestureDetector(
+    return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withOpacity(0.1)),
+          color: const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
         ),
         child: Row(
           children: [
-            Icon(icon, color: Colors.white, size: 30),
-            const SizedBox(width: 16),
+            Container(
+              height: 44,
+              width: 44,
+              decoration: BoxDecoration(
+                color: const Color(0xFF4F46E5).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: const Color(0xFF4F46E5), size: 24),
+            ),
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                  Text(subtitle, style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 12)),
+                  Text(title, style: const TextStyle(color: Color(0xFF0F172A), fontSize: 16, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 2),
+                  Text(subtitle, style: const TextStyle(color: Color(0xFF64748B), fontSize: 13)),
                 ],
               ),
-            )
+            ),
+            const Icon(Icons.chevron_right, color: Color(0xFF94A3B8), size: 20),
           ],
         ),
       ),
@@ -137,78 +139,45 @@ class _MainTabControllerState extends State<MainTabController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBody: true, // Crucial for letting the background gradient flow under the bar
       body: IndexedStack(
         index: _currentIndex,
         children: _screens,
       ),
-      // NEW: Custom Floating Capsule (Pill) Navigation Bar
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.only(left: 20, right: 20, bottom: 20), // Floating effect
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(40), // Pill Shape
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-              child: Container(
-                height: 70,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2), // Made slightly brighter for visibility
-                  borderRadius: BorderRadius.circular(40),
-                  border: Border.all(color: Colors.white.withOpacity(0.4), width: 1.5),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.15),
-                      blurRadius: 20,
-                      spreadRadius: 5,
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _buildNavItem(icon: Icons.home_rounded, label: 'Home', index: 0),
-                    _buildNavItem(icon: Icons.qr_code_scanner_rounded, label: 'Scan', index: 1),
-
-                    // The glowing circle + button placed directly in the row
-                    GestureDetector(
-                      onTap: () => _showCreateOptions(context),
-                      child: Container(
-                        height: 52, // Slightly larger for better touch target
-                        width: 52,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF1BFFFF).withOpacity(0.6),
-                              blurRadius: 15,
-                              spreadRadius: 2,
-                            ),
-                          ],
-                        ),
-                        // The Material widget ensures crisp, anti-aliased borders on tablets
-                        child: const Material(
-                          type: MaterialType.circle,
-                          color: Colors.white,
-                          clipBehavior: Clip.antiAlias,
-                          child: Icon(Icons.add, color: Color(0xFF2E3192), size: 30),
-                        ),
-                      ),
-                    ),
-
-                    _buildNavItem(icon: Icons.public_rounded, label: 'Explore', index: 2),
-                    _buildNavItem(icon: Icons.person_rounded, label: 'Profile', index: 3),
-                  ],
-                ),
-              ),
-            ),
-          ),
+      // Clean FAB for create action
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showCreateOptions(context),
+        backgroundColor: const Color(0xFF4F46E5),
+        foregroundColor: Colors.white,
+        elevation: 3,
+        shape: const CircleBorder(),
+        child: const Icon(Icons.add, size: 28),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      // Clean Material Bottom Navigation Bar
+      bottomNavigationBar: BottomAppBar(
+        height: 68,
+        padding: EdgeInsets.zero,
+        color: Colors.white,
+        surfaceTintColor: Colors.transparent,
+        elevation: 8,
+        shadowColor: Colors.black.withOpacity(0.1),
+        notchMargin: 8,
+        shape: const CircularNotchedRectangle(),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildNavItem(icon: Icons.home_outlined, activeIcon: Icons.home_rounded, label: 'Home', index: 0),
+            _buildNavItem(icon: Icons.qr_code_scanner_outlined, activeIcon: Icons.qr_code_scanner_rounded, label: 'Scan', index: 1),
+            const SizedBox(width: 48), // Space for the FAB
+            _buildNavItem(icon: Icons.explore_outlined, activeIcon: Icons.explore_rounded, label: 'Explore', index: 2),
+            _buildNavItem(icon: Icons.person_outline, activeIcon: Icons.person_rounded, label: 'Profile', index: 3),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildNavItem({required IconData icon, required String label, required int index}) {
+  Widget _buildNavItem({required IconData icon, required IconData activeIcon, required String label, required int index}) {
     bool isActive = _currentIndex == index;
     return GestureDetector(
       onTap: () {
@@ -217,25 +186,28 @@ class _MainTabControllerState extends State<MainTabController> {
         });
       },
       behavior: HitTestBehavior.opaque,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            size: 28,
-            color: isActive ? Colors.white : Colors.white.withOpacity(0.4),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-              color: isActive ? Colors.white : Colors.white.withOpacity(0.4),
+      child: SizedBox(
+        width: 64,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              isActive ? activeIcon : icon,
+              size: 24,
+              color: isActive ? const Color(0xFF4F46E5) : const Color(0xFF94A3B8),
             ),
-          ),
-        ],
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+                color: isActive ? const Color(0xFF4F46E5) : const Color(0xFF94A3B8),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

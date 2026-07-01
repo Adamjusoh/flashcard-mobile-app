@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -14,162 +13,179 @@ class HomeScreen extends StatelessWidget {
     final String currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
 
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF2E3192), Color(0xFF1BFFFF)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Padding(
-                padding: EdgeInsets.all(24.0),
-                child: Text(
-                  'My Library',
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+      backgroundColor: const Color(0xFFF8FAFC),
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Clean header
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'My Library',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF0F172A),
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Your flashcard decks',
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: Color(0xFF64748B),
+                    ),
+                  ),
+                ],
               ),
-              Expanded(
-                child: StreamBuilder<QuerySnapshot>(
-                  stream: FirebaseFirestore.instance
-                      .collection('decks')
-                      .where('authorId', isEqualTo: currentUserId)
-                      .snapshots(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(
-                          child: CircularProgressIndicator(color: Colors.white));
-                    }
+            ),
+            const SizedBox(height: 8),
+            Expanded(
+              child: StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('decks')
+                    .where('authorId', isEqualTo: currentUserId)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                        child: CircularProgressIndicator(color: Color(0xFF4F46E5)));
+                  }
 
-                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                      return const Center(
-                        child: Text(
-                          'No decks yet.\nTap the + button to create one!',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.white70, fontSize: 18),
-                        ),
-                      );
-                    }
-
-                    final decks = snapshot.data!.docs;
-
-                    return ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                      itemCount: decks.length,
-                      itemBuilder: (context, index) {
-                        var deckData = decks[index].data() as Map<String, dynamic>;
-                        String deckId = decks[index].id;
-                        String title = deckData['title'] ?? 'Untitled Deck';
-                        bool isPublic = deckData['isPublic'] ?? false;
-                        String authorId = deckData['authorId'] ?? currentUserId;
-
-                        // Pass the authorId to the glass card
-                        return _buildGlassCard(context, title, isPublic, deckId, authorId);
-                      },
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.style_outlined, size: 64, color: const Color(0xFF94A3B8)),
+                          const SizedBox(height: 16),
+                          const Text(
+                            'No decks yet',
+                            style: TextStyle(
+                              color: Color(0xFF0F172A),
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'Tap the + button to create one!',
+                            style: TextStyle(color: Color(0xFF64748B), fontSize: 14),
+                          ),
+                        ],
+                      ),
                     );
-                  },
-                ),
+                  }
+
+                  final decks = snapshot.data!.docs;
+
+                  return ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                    itemCount: decks.length,
+                    itemBuilder: (context, index) {
+                      var deckData = decks[index].data() as Map<String, dynamic>;
+                      String deckId = decks[index].id;
+                      String title = deckData['title'] ?? 'Untitled Deck';
+                      bool isPublic = deckData['isPublic'] ?? false;
+                      String authorId = deckData['authorId'] ?? currentUserId;
+
+                      // Pass the authorId to the card
+                      return _buildDeckCard(context, title, isPublic, deckId, authorId);
+                    },
+                  );
+                },
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildGlassCard(
+  Widget _buildDeckCard(
       BuildContext context, String title, bool isPublic, String deckId, String authorId) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.15),
-                  blurRadius: 20,
-                  spreadRadius: 2,
+      padding: const EdgeInsets.only(bottom: 10.0),
+      child: Card(
+        elevation: 0,
+        color: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: const BorderSide(color: Color(0xFFE2E8F0), width: 1),
+        ),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: () {
+            // Navigate to the DeckDetailScreen with a smooth custom transition
+            Navigator.push(
+                context,
+                PageRouteBuilder(
+                  pageBuilder: (context, animation, secondaryAnimation) => DeckDetailScreen(
+                    deckId: deckId,
+                    deckTitle: title,
+                    authorId: authorId,
+                  ),
+                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                    return FadeTransition(
+                      opacity: animation,
+                      child: SlideTransition(
+                        position: Tween<Offset>(
+                          begin: const Offset(0, 0.03), // Subtle slide up
+                          end: Offset.zero,
+                        ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOut)),
+                        child: child,
+                      ),
+                    );
+                  },
+                  transitionDuration: const Duration(milliseconds: 250),
+                )
+            );
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+            child: Row(
+              children: [
+                // Deck icon
+                Container(
+                  height: 46,
+                  width: 46,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF4F46E5).withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.style_rounded, color: Color(0xFF4F46E5), size: 24),
                 ),
-                BoxShadow(
-                  color: Colors.white.withOpacity(0.05),
-                  blurRadius: 10,
-                  spreadRadius: -2,
-                ),
-              ],
-            ),
-            child: ListTile(
-              contentPadding:
-              const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              title: Text(
-                title,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              subtitle: Padding(
-                padding: const EdgeInsets.only(top: 8.0),
-                child: Text(
-                  isPublic ? 'Community Deck' : 'Private Deck',
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.7),
-                    fontSize: 14,
+                const SizedBox(width: 14),
+                // Title + subtitle
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          color: Color(0xFF0F172A),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        isPublic ? 'Community Deck' : 'Private Deck',
+                        style: const TextStyle(
+                          color: Color(0xFF64748B),
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-              trailing: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.play_arrow_rounded,
-                  color: Colors.white,
-                  size: 28,
-                ),
-              ),
-              onTap: () {
-                // Navigate to the DeckDetailScreen with a smooth custom transition
-                Navigator.push(
-                    context,
-                    PageRouteBuilder(
-                      pageBuilder: (context, animation, secondaryAnimation) => DeckDetailScreen(
-                        deckId: deckId,
-                        deckTitle: title,
-                        authorId: authorId,
-                      ),
-                      transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                        return FadeTransition(
-                          opacity: animation,
-                          child: SlideTransition(
-                            position: Tween<Offset>(
-                              begin: const Offset(0, 0.05), // Subtle slide up
-                              end: Offset.zero,
-                            ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOut)),
-                            child: child,
-                          ),
-                        );
-                      },
-                      transitionDuration: const Duration(milliseconds: 300),
-                    )
-                );
-              },
+                const Icon(Icons.chevron_right_rounded, color: Color(0xFF94A3B8), size: 22),
+              ],
             ),
           ),
         ),

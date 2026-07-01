@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -88,7 +87,7 @@ class _AddEditDeckScreenState extends State<AddEditDeckScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(widget.deckId == null ? 'Deck created!' : 'Deck updated!'),
-            backgroundColor: Colors.green,
+            backgroundColor: const Color(0xFF16A34A),
           ),
         );
       }
@@ -98,7 +97,7 @@ class _AddEditDeckScreenState extends State<AddEditDeckScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error saving deck: $e'),
-            backgroundColor: Colors.redAccent,
+            backgroundColor: const Color(0xFFDC2626),
           ),
         );
       }
@@ -116,140 +115,108 @@ class _AddEditDeckScreenState extends State<AddEditDeckScreen> {
     bool isEditMode = widget.deckId != null;
 
     return Scaffold(
-      extendBodyBehindAppBar: true,
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: const Color(0xFFF8FAFC),
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
         title: Text(
           isEditMode ? 'Edit Deck' : 'Create New Deck',
-          style: const TextStyle(color: Colors.white),
-        ),
-      ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF2E3192), Color(0xFF1BFFFF)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+          style: const TextStyle(
+            color: Color(0xFF0F172A),
+            fontWeight: FontWeight.w600,
           ),
         ),
-        child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
-              // 3. The Glassmorphic Form Card
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(24),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-                  child: Container(
-                    padding: const EdgeInsets.all(32),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.15),
-                          blurRadius: 30,
-                          spreadRadius: 5,
-                        ),
-                      ],
-                    ),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.style, size: 60, color: Colors.white),
-                          const SizedBox(height: 20),
-                          
-                          // Deck Title Field
-                          TextFormField(
-                            controller: _titleController,
-                            style: const TextStyle(color: Colors.white, fontSize: 18),
-                            decoration: InputDecoration(
-                              labelText: 'Deck Title',
-                              labelStyle: const TextStyle(color: Colors.white70),
-                              enabledBorder: UnderlineInputBorder(
-                                borderSide: BorderSide(color: Colors.white.withOpacity(0.5)),
-                              ),
-                              focusedBorder: const UnderlineInputBorder(
-                                borderSide: BorderSide(color: Colors.white, width: 2),
-                              ),
-                            ),
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return 'Please enter a title for your deck.';
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 30),
-
-                          // 4. Role-Based UI Element
-                          if (_userRole == 'Educator')
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.05),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: Colors.white.withOpacity(0.1)),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        const Text('Public Deck', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-                                        Text('Allow students to scan and copy this deck.', style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 12)),
-                                      ],
-                                    ),
-                                  ),
-                                  Switch(
-                                    value: _isPublic,
-                                    activeColor: const Color(0xFF1BFFFF),
-                                    onChanged: (val) {
-                                      setState(() => _isPublic = val);
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ),
-                          
-                          if (_userRole == 'Educator') const SizedBox(height: 30),
-
-                          // Save Button
-                          _isLoading
-                              ? const CircularProgressIndicator(color: Colors.white)
-                              : SizedBox(
-                                  width: double.infinity,
-                                  height: 50,
-                                  child: ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.white,
-                                      foregroundColor: const Color(0xFF2E3192),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                    ),
-                                    onPressed: _saveDeck,
-                                    child: Text(
-                                      isEditMode ? 'SAVE CHANGES' : 'CREATE DECK',
-                                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                ),
-                        ],
-                      ),
-                    ),
-                  ),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Deck Title Field
+              const Text(
+                'Deck Title',
+                style: TextStyle(
+                  color: Color(0xFF0F172A),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-            ),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _titleController,
+                style: const TextStyle(color: Color(0xFF0F172A), fontSize: 16),
+                decoration: const InputDecoration(
+                  hintText: 'e.g., Biology Chapter 5',
+                  hintStyle: TextStyle(color: Color(0xFF94A3B8)),
+                ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Please enter a title for your deck.';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 28),
+
+              // Role-Based UI Element
+              if (_userRole == 'Educator') ...[
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Public Deck',
+                              style: TextStyle(
+                                color: Color(0xFF0F172A),
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Allow students to scan and copy this deck.',
+                              style: TextStyle(color: const Color(0xFF64748B), fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Switch.adaptive(
+                        value: _isPublic,
+                        activeColor: const Color(0xFF4F46E5),
+                        onChanged: (val) {
+                          setState(() => _isPublic = val);
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 28),
+              ],
+
+              // Save Button
+              _isLoading
+                  ? const Center(child: CircularProgressIndicator(color: Color(0xFF4F46E5)))
+                  : SizedBox(
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: _saveDeck,
+                        child: Text(
+                          isEditMode ? 'Save Changes' : 'Create Deck',
+                        ),
+                      ),
+                    ),
+            ],
           ),
         ),
       ),

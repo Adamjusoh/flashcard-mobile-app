@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -45,18 +44,20 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
     }
   }
 
-  // DELETE operation for the entire deck (Requirement 5)
+  // DELETE operation for the entire deck
   Future<void> _deleteDeck() async {
     // Show confirmation dialog first
     bool confirm = await showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF2E3192),
-        title: const Text('Delete Deck?', style: TextStyle(color: Colors.white)),
-        content: const Text('Are you sure? All cards inside will be lost forever.', style: TextStyle(color: Colors.white70)),
+        title: const Text('Delete Deck?'),
+        content: const Text('Are you sure? All cards inside will be lost forever.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel', style: TextStyle(color: Colors.white))),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Delete', style: TextStyle(color: Colors.redAccent))),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete', style: TextStyle(color: Color(0xFFDC2626))),
+          ),
         ],
       ),
     ) ?? false;
@@ -68,12 +69,12 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
       if (mounted) {
         Navigator.pop(context); // Go back to Home Screen
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Deck deleted successfully.'), backgroundColor: Colors.green),
+          const SnackBar(content: Text('Deck deleted successfully.'), backgroundColor: Color(0xFF16A34A)),
         );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error deleting deck: $e'), backgroundColor: Colors.redAccent),
+        SnackBar(content: Text('Error deleting deck: $e'), backgroundColor: const Color(0xFFDC2626)),
       );
     }
   }
@@ -83,20 +84,13 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
     bool confirm = await showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF2E3192),
-        title: const Text('Delete Card?', style: TextStyle(color: Colors.white)),
-        content: const Text(
-          'This card will be permanently removed from the deck.',
-          style: TextStyle(color: Colors.white70),
-        ),
+        title: const Text('Delete Card?'),
+        content: const Text('Are you sure you want to delete this card?'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel', style: TextStyle(color: Colors.white)),
-          ),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Delete', style: TextStyle(color: Colors.redAccent)),
+            child: const Text('Delete', style: TextStyle(color: Color(0xFFDC2626))),
           ),
         ],
       ),
@@ -115,7 +109,7 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Card deleted.'),
-            backgroundColor: Colors.green,
+            backgroundColor: Color(0xFF16A34A),
           ),
         );
       }
@@ -124,7 +118,7 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error deleting card: $e'),
-            backgroundColor: Colors.redAccent,
+            backgroundColor: const Color(0xFFDC2626),
           ),
         );
       }
@@ -136,220 +130,244 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
     bool isAuthor = _currentUserId == widget.authorId;
 
     return Scaffold(
-      extendBodyBehindAppBar: true,
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: const Color(0xFFF8FAFC),
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
-        title: Text(widget.deckTitle, style: const TextStyle(color: Colors.white)),
-      ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF2E3192), Color(0xFF1BFFFF)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+        title: Text(
+          widget.deckTitle,
+          style: const TextStyle(
+            color: Color(0xFF0F172A),
+            fontWeight: FontWeight.w600,
           ),
         ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              // 1. The List of Cards (Moved to the TOP)
-              Expanded(
-                child: StreamBuilder<QuerySnapshot>(
-                  stream: FirebaseFirestore.instance
-                      .collection('decks')
-                      .doc(widget.deckId)
-                      .collection('cards')
-                      .snapshots(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator(color: Colors.white));
-                    }
-
-                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                      return const Center(
-                        child: Text(
-                          'No cards in this deck yet.',
-                          style: TextStyle(color: Colors.white70, fontSize: 16),
-                        ),
-                      );
-                    }
-
-                    final cards = snapshot.data!.docs;
-
-                    return ListView.builder(
-                      padding: const EdgeInsets.only(bottom: 20, left: 16, right: 16),
-                      itemCount: cards.length,
-                      itemBuilder: (context, index) {
-                        var cardData = cards[index].data() as Map<String, dynamic>;
-                        String cardId = cards[index].id;
-
-                        return _buildCardTile(cardData, cardId, isAuthor);
-                      },
-                    );
-                  },
+        actions: [
+          if (isAuthor)
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert, color: Color(0xFF64748B)),
+              onSelected: (value) {
+                if (value == 'edit') {
+                  Navigator.push(context, MaterialPageRoute(
+                    builder: (_) => AddEditDeckScreen(deckId: widget.deckId, initialTitle: widget.deckTitle),
+                  ));
+                } else if (value == 'delete') {
+                  _deleteDeck();
+                }
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(value: 'edit', child: Text('Edit Deck')),
+                const PopupMenuItem(
+                  value: 'delete',
+                  child: Text('Delete Deck', style: TextStyle(color: Color(0xFFDC2626))),
                 ),
-              ),
+              ],
+            ),
+        ],
+      ),
+      body: Column(
+        children: [
+          // 1. The List of Cards
+          Expanded(
+            child: StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('decks')
+                  .doc(widget.deckId)
+                  .collection('cards')
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator(color: Color(0xFF4F46E5)));
+                }
 
-              // 2. Dashboard / Action Panel (Moved to the BOTTOM for reachability)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 24.0),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                    child: Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          SizedBox(
-                            width: double.infinity,
-                            height: 50,
-                            child: ElevatedButton.icon(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.white,
-                                foregroundColor: const Color(0xFF2E3192),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                              ),
-                              icon: const Icon(Icons.play_arrow_rounded, size: 28),
-                              label: const Text('STUDY NOW', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                              onPressed: () {
-                                Navigator.push(context, MaterialPageRoute(builder: (_) => StudyScreen(deckId: widget.deckId, deckTitle: widget.deckTitle)));
-                              },
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              // Share Button - Visible to any author of the deck
-                              if (isAuthor)
-                                _buildActionIcon(
-                                  icon: Icons.qr_code_2_rounded,
-                                  label: 'Share',
-                                  color: Colors.greenAccent,
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) => QRDisplayScreen(
-                                          deckId: widget.deckId,
-                                          username: _username,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-
-                              // Edit, Delete & Add Card - Only visible to the author of the deck
-                              if (isAuthor) ...[
-                                _buildActionIcon(
-                                  icon: Icons.add_circle_outline_rounded,
-                                  label: 'Add Card',
-                                  color: Colors.blueAccent,
-                                  onTap: () {
-                                    Navigator.push(context, MaterialPageRoute(builder: (_) => AddEditCardScreen(deckId: widget.deckId)));
-                                  },
-                                ),
-                                _buildActionIcon(
-                                  icon: Icons.edit_rounded,
-                                  label: 'Edit',
-                                  color: Colors.orangeAccent,
-                                  onTap: () {
-                                    Navigator.push(context, MaterialPageRoute(builder: (_) => AddEditDeckScreen(deckId: widget.deckId, initialTitle: widget.deckTitle)));
-                                  },
-                                ),
-                                _buildActionIcon(
-                                  icon: Icons.delete_rounded,
-                                  label: 'Delete',
-                                  color: Colors.redAccent,
-                                  onTap: _deleteDeck,
-                                ),
-                              ],
-                            ],
-                          ),
-                        ],
-                      ),
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.note_add_outlined, size: 56, color: const Color(0xFF94A3B8)),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'No cards in this deck yet',
+                          style: TextStyle(color: Color(0xFF64748B), fontSize: 16),
+                        ),
+                      ],
                     ),
+                  );
+                }
+
+                final cards = snapshot.data!.docs;
+
+                return ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  itemCount: cards.length,
+                  itemBuilder: (context, index) {
+                    var cardData = cards[index].data() as Map<String, dynamic>;
+                    String cardId = cards[index].id;
+
+                    return _buildCardTile(cardData, cardId, isAuthor);
+                  },
+                );
+              },
+            ),
+          ),
+
+          // 2. Bottom Action Panel
+          Container(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              border: Border(top: BorderSide(color: Color(0xFFE2E8F0), width: 1)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Study Now button
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF4F46E5),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    icon: const Icon(Icons.play_arrow_rounded, size: 24),
+                    label: const Text('Start Studying', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                    onPressed: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => StudyScreen(deckId: widget.deckId, deckTitle: widget.deckTitle)));
+                    },
                   ),
                 ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+                const SizedBox(height: 12),
+                // Secondary actions row
+                Row(
+                  children: [
+                    // Share Button - Visible to any author of the deck (Educator or Student)
+                    if (isAuthor)
+                      Expanded(
+                        child: _buildSecondaryAction(
+                          icon: Icons.qr_code_2_rounded,
+                          label: 'Share QR',
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => QRDisplayScreen(
+                                  deckId: widget.deckId,
+                                  username: _username,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    if (isAuthor)
+                      const SizedBox(width: 10),
 
-  // Helper widget for action icons in the dashboard
-  Widget _buildActionIcon({required IconData icon, required String label, required Color color, required VoidCallback onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.2),
-              shape: BoxShape.circle,
-              border: Border.all(color: color.withOpacity(0.5)),
+                    // Add Card - Only visible to the author of the deck
+                    if (isAuthor)
+                      Expanded(
+                        child: _buildSecondaryAction(
+                          icon: Icons.add_rounded,
+                          label: 'Add Card',
+                          onTap: () {
+                            Navigator.push(context, MaterialPageRoute(builder: (_) => AddEditCardScreen(deckId: widget.deckId)));
+                          },
+                        ),
+                      ),
+                  ],
+                ),
+              ],
             ),
-            child: Icon(icon, color: color),
           ),
-          const SizedBox(height: 4),
-          Text(label, style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 12)),
         ],
       ),
     );
   }
 
+  Widget _buildSecondaryAction({required IconData icon, required String label, required VoidCallback onTap}) {
+    return OutlinedButton.icon(
+      onPressed: onTap,
+      style: OutlinedButton.styleFrom(
+        foregroundColor: const Color(0xFF4F46E5),
+        side: const BorderSide(color: Color(0xFFE2E8F0)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        padding: const EdgeInsets.symmetric(vertical: 12),
+      ),
+      icon: Icon(icon, size: 18),
+      label: Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+    );
+  }
+
   // Helper widget for individual card list items
   Widget _buildCardTile(Map<String, dynamic> cardData, String cardId, bool isAuthor) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+    return Card(
+      elevation: 0,
+      margin: const EdgeInsets.only(bottom: 8),
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
+        side: const BorderSide(color: Color(0xFFE2E8F0), width: 1),
       ),
-      child: ListTile(
-        title: Text(
-          cardData['front'] ?? '',
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        subtitle: Text(
-          cardData['back'] ?? '',
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(color: Colors.white.withOpacity(0.6)),
-        ),
-        trailing: isAuthor
-            ? Row(
-          mainAxisSize: MainAxisSize.min,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            IconButton(
-              icon: const Icon(Icons.edit, color: Colors.orangeAccent, size: 20),
-              onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => AddEditCardScreen(deckId: widget.deckId, cardId: cardId, initialFront: cardData['front'], initialBack: cardData['back'])));
-              },
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    cardData['front'] ?? '',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Color(0xFF0F172A),
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    cardData['back'] ?? '',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(color: Color(0xFF64748B), fontSize: 13),
+                  ),
+                ],
+              ),
             ),
-            IconButton(
-              icon: const Icon(Icons.delete, color: Colors.redAccent, size: 20),
-              onPressed: () => _deleteCard(cardId),
-            ),
+            if (isAuthor) ...[
+              const SizedBox(width: 8),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    width: 36,
+                    height: 36,
+                    child: IconButton(
+                      padding: EdgeInsets.zero,
+                      icon: const Icon(Icons.edit_outlined, color: Color(0xFF64748B), size: 18),
+                      onPressed: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => AddEditCardScreen(deckId: widget.deckId, cardId: cardId, initialFront: cardData['front'], initialBack: cardData['back'])));
+                      },
+                    ),
+                  ),
+                  SizedBox(
+                    width: 36,
+                    height: 36,
+                    child: IconButton(
+                      padding: EdgeInsets.zero,
+                      icon: const Icon(Icons.delete_outline, color: Color(0xFFDC2626), size: 18),
+                      onPressed: () => _deleteCard(cardId),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ],
-        )
-            : null,
+        ),
       ),
     );
   }
