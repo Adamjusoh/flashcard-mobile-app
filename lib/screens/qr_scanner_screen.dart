@@ -4,7 +4,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class QRScannerScreen extends StatefulWidget {
-  const QRScannerScreen({Key? key}) : super(key: key);
+  final bool isActive;
+  final VoidCallback? onScanSuccess;
+
+  const QRScannerScreen({
+    Key? key,
+    this.isActive = true,
+    this.onScanSuccess,
+  }) : super(key: key);
 
   @override
   _QRScannerScreenState createState() => _QRScannerScreenState();
@@ -13,6 +20,38 @@ class QRScannerScreen extends StatefulWidget {
 class _QRScannerScreenState extends State<QRScannerScreen> {
   final MobileScannerController _cameraController = MobileScannerController();
   bool _isProcessing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (!widget.isActive) {
+      _safeStop();
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant QRScannerScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.isActive != widget.isActive) {
+      if (widget.isActive) {
+        _safeStart();
+      } else {
+        _safeStop();
+      }
+    }
+  }
+
+  void _safeStart() {
+    try {
+      _cameraController.start();
+    } catch (_) {}
+  }
+
+  void _safeStop() {
+    try {
+      _cameraController.stop();
+    } catch (_) {}
+  }
 
   Future<void> _processScannedDeck(String scannedDeckId) async {
     if (_isProcessing) return;
@@ -75,7 +114,6 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
 
       await batch.commit();
 
-      _cameraController.stop();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -83,11 +121,13 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
             backgroundColor: Color(0xFF16A34A),
           ),
         );
-        Navigator.pop(context);
+        setState(() => _isProcessing = false);
+        if (widget.onScanSuccess != null) {
+          widget.onScanSuccess!();
+        }
       }
 
     } catch (e) {
-      setState(() => _isProcessing = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -95,6 +135,13 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
             backgroundColor: const Color(0xFFDC2626),
           ),
         );
+      }
+      
+      // Cooldown of 2 seconds before letting user scan again to prevent scan loops
+      await Future.delayed(const Duration(seconds: 2));
+      if (mounted && widget.isActive) {
+        setState(() => _isProcessing = false);
+        _safeStart();
       }
     }
   }
@@ -109,118 +156,125 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF1E293B),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text(
-          'Scan Deck QR',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
-        ),
-      ),
-      body: Stack(
-        children: [
-          // Dark background
-          Container(color: const Color(0xFF1E293B)),
-
-          // Center Scanner Box — camera feed restricted to this square
-          Align(
-            alignment: Alignment.center,
-            child: Container(
-              height: 260,
-              width: 260,
-              decoration: BoxDecoration(
-                border: Border.all(color: const Color(0xFF4F46E5), width: 3),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(17),
-                child: MobileScanner(
-                  controller: _cameraController,
-                  onDetect: (capture) {
-                    final List<Barcode> barcodes = capture.barcodes;
-                    for (final barcode in barcodes) {
-                      if (barcode.rawValue != null && !_isProcessing) {
-                        _processScannedDeck(barcode.rawValue!);
-                      }
-                    }
-                  },
-                ),
-              ),
-            ),
-          ),
-
-          // Corner markers for scanner feel
-          Align(
-            alignment: Alignment.center,
-            child: SizedBox(
-              height: 270,
-              width: 270,
-              child: Stack(
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Equally sized header matching Home/Explore/Profile screens
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Top-left corner
-                  Positioned(top: 0, left: 0, child: _buildCorner(true, true)),
-                  // Top-right corner
-                  Positioned(top: 0, right: 0, child: _buildCorner(true, false)),
-                  // Bottom-left corner
-                  Positioned(bottom: 0, left: 0, child: _buildCorner(false, true)),
-                  // Bottom-right corner
-                  Positioned(bottom: 0, right: 0, child: _buildCorner(false, false)),
+                  const Text(
+                    'Scan Deck QR',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Position the QR code within the frame',
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: Colors.white.withOpacity(0.7),
+                    ),
+                  ),
                 ],
               ),
             ),
-          ),
-
-          // Instruction Text
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 140.0),
-              child: Text(
-                'Position the QR code within the frame',
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.7),
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-          ),
-
-          // Loading Overlay when processing
-          if (_isProcessing)
-            Container(
-              color: Colors.black.withOpacity(0.6),
-              child: Center(
-                child: Container(
-                  padding: const EdgeInsets.all(28),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
+            const SizedBox(height: 8),
+            Expanded(
+              child: Stack(
+                children: [
+                  // Center Scanner Box — camera feed restricted to this square
+                  Align(
+                    alignment: Alignment.center,
+                    child: Container(
+                      height: 260,
+                      width: 260,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: const Color(0xFF4F46E5), width: 3),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(17),
+                        child: widget.isActive
+                            ? MobileScanner(
+                                controller: _cameraController,
+                                onDetect: (capture) {
+                                  final List<Barcode> barcodes = capture.barcodes;
+                                  for (final barcode in barcodes) {
+                                    if (barcode.rawValue != null && !_isProcessing) {
+                                      _safeStop(); // Stop camera feed immediately
+                                      _processScannedDeck(barcode.rawValue!);
+                                      break;
+                                    }
+                                  }
+                                },
+                              )
+                            : Container(color: const Color(0xFF1E293B)),
+                      ),
+                    ),
                   ),
-                  child: const Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      CircularProgressIndicator(color: Color(0xFF4F46E5)),
-                      SizedBox(height: 20),
-                      Text(
-                        'Copying deck...',
-                        style: TextStyle(
-                          color: Color(0xFF0F172A),
-                          fontWeight: FontWeight.w600,
-                          fontSize: 15,
+
+                  // Corner markers for scanner feel
+                  Align(
+                    alignment: Alignment.center,
+                    child: SizedBox(
+                      height: 270,
+                      width: 270,
+                      child: Stack(
+                        children: [
+                          // Top-left corner
+                          Positioned(top: 0, left: 0, child: _buildCorner(true, true)),
+                          // Top-right corner
+                          Positioned(top: 0, right: 0, child: _buildCorner(true, false)),
+                          // Bottom-left corner
+                          Positioned(bottom: 0, left: 0, child: _buildCorner(false, true)),
+                          // Bottom-right corner
+                          Positioned(bottom: 0, right: 0, child: _buildCorner(false, false)),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // Loading Overlay when processing
+                  if (_isProcessing)
+                    Container(
+                      color: Colors.black.withOpacity(0.6),
+                      child: Center(
+                        child: Container(
+                          padding: const EdgeInsets.all(28),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: const Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              CircularProgressIndicator(color: Color(0xFF4F46E5)),
+                              SizedBox(height: 20),
+                              Text(
+                                'Copying deck...',
+                                style: TextStyle(
+                                  color: Color(0xFF0F172A),
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ],
-                  ),
-                ),
+                    ),
+                ],
               ),
             ),
-        ],
+          ],
+        ),
       ),
     );
   }

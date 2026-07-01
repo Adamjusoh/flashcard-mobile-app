@@ -46,7 +46,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
       batch.set(newDeckRef, {
         'title': '$originalTitle (Downloaded)',
         'authorId': _currentUserId, 
-        'isPublic': false, // Force the downloaded copy to be private
+        'isPublic': true, // Keep the downloaded copy public/community
         'createdAt': Timestamp.now(),
       });
 
