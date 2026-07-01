@@ -14,6 +14,16 @@ class _CommunityScreenState extends State<CommunityScreen> {
   final String _currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
   String? _downloadingDeckId; // Tracks which deck is currently downloading to show a spinner
 
+  // Fetches a username string from Firestore given a uid
+  Future<String> _fetchUsername(String uid) async {
+    try {
+      final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      return doc.data()?['username'] as String? ?? 'Unknown';
+    } catch (_) {
+      return 'Unknown';
+    }
+  }
+
   // Logic to duplicate a public deck to the user's private library
   Future<void> _downloadDeck(String originalDeckId, String originalTitle) async {
     setState(() => _downloadingDeckId = originalDeckId);
@@ -157,12 +167,15 @@ class _CommunityScreenState extends State<CommunityScreen> {
                         String deckId = publicDecks[index].id;
                         String title = deckData['title'] ?? 'Untitled Deck';
                         
+                        String authorId = deckData['authorId'] ?? '';
+
                         // Don't show the download button if the user actually created this public deck
                         bool isOwner = deckData['authorId'] == _currentUserId;
 
                         return _buildCommunityGlassCard(
                           title: title,
                           deckId: deckId,
+                          authorId: authorId,
                           isOwner: isOwner,
                         );
                       },
@@ -181,6 +194,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
   Widget _buildCommunityGlassCard({
     required String title,
     required String deckId,
+    required String authorId,
     required bool isOwner,
   }) {
     bool isDownloading = _downloadingDeckId == deckId;
@@ -221,18 +235,35 @@ class _CommunityScreenState extends State<CommunityScreen> {
               ),
               subtitle: Padding(
                 padding: const EdgeInsets.only(top: 8.0),
-                child: Row(
-                  children: [
-                    Icon(Icons.public, color: Colors.white.withOpacity(0.7), size: 16),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Community Deck',
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.7),
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
+                child: FutureBuilder<String>(
+                  future: _fetchUsername(authorId),
+                  builder: (context, snapshot) {
+                    final username = snapshot.data ?? '...';
+                    return Row(
+                      children: [
+                        Icon(Icons.person_outline, color: Colors.white.withOpacity(0.7), size: 16),
+                        const SizedBox(width: 6),
+                        Text(
+                          'by $username',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.9),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Icon(Icons.public, color: Colors.white.withOpacity(0.5), size: 14),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Community Deck',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.6),
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ),
               trailing: isOwner 

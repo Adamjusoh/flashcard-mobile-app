@@ -20,6 +20,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
   String _email = '';
   String _password = '';
+  String _username = '';
   String _role = 'Student'; // Default role
 
   // Form Submission Logic & Error Handling (Requirement 1 & 2)
@@ -47,9 +48,10 @@ class _AuthScreenState extends State<AuthScreen> {
           password: _password,
         );
 
-        // Save User Role to Firestore Database (Requirement 3 & 4)
+        // Save User Role and Username to Firestore Database
         await _firestore.collection('users').doc(userCredential.user!.uid).set({
           'email': _email,
+          'username': _username,
           'role': _role,
           'createdAt': Timestamp.now(),
         });
@@ -176,6 +178,40 @@ class _AuthScreenState extends State<AuthScreen> {
                             },
                             onSaved: (value) => _password = value!,
                           ),
+                          const SizedBox(height: 20),
+
+                          // Username Field (Only visible during Registration)
+                          if (!_isLogin)
+                            TextFormField(
+                              style: const TextStyle(color: Colors.white),
+                              decoration: InputDecoration(
+                                labelText: 'Username',
+                                labelStyle: const TextStyle(color: Colors.white70),
+                                enabledBorder: UnderlineInputBorder(
+                                  borderSide: BorderSide(color: Colors.white.withOpacity(0.5)),
+                                ),
+                                focusedBorder: const UnderlineInputBorder(
+                                  borderSide: BorderSide(color: Colors.white),
+                                ),
+                                errorStyle: const TextStyle(color: Colors.yellowAccent),
+                              ),
+                              validator: (value) {
+                                if (!_isLogin) {
+                                  if (value == null || value.trim().isEmpty) {
+                                    return 'Please enter a username.';
+                                  }
+                                  if (value.trim().length < 3) {
+                                    return 'Username must be at least 3 characters.';
+                                  }
+                                  if (value.contains(' ')) {
+                                    return 'Username cannot contain spaces.';
+                                  }
+                                }
+                                return null;
+                              },
+                              onSaved: (value) => _username = value?.trim() ?? '',
+                            ),
+
                           const SizedBox(height: 20),
 
                           // Role Selection (Only visible during Registration)

@@ -35,11 +35,26 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
           .collection('cards')
           .get();
 
+      // Fetch the sharer's username for attribution
+      final String authorId = originalDeckDoc.data()?['authorId'] ?? '';
+      String sharerUsername = '';
+      if (authorId.isNotEmpty) {
+        try {
+          final userDoc = await firestore.collection('users').doc(authorId).get();
+          sharerUsername = userDoc.data()?['username'] as String? ?? '';
+        } catch (_) {}
+      }
+
+      final originalTitle = originalDeckDoc.data()?['title'] ?? 'Deck';
+      final copiedTitle = sharerUsername.isNotEmpty
+          ? '$originalTitle (Shared from $sharerUsername)'
+          : '$originalTitle (Copy)';
+
       final batch = firestore.batch();
       final newDeckRef = firestore.collection('decks').doc();
 
       batch.set(newDeckRef, {
-        'title': '${originalDeckDoc.data()?['title']} (Copy)',
+        'title': copiedTitle,
         'authorId': currentUserId,
         'isPublic': false,
         'createdAt': Timestamp.now(),

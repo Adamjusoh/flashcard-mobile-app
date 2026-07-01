@@ -4,8 +4,9 @@ import 'package:qr_flutter/qr_flutter.dart'; // Make sure to add this to pubspec
 
 class QRDisplayScreen extends StatelessWidget {
   final String deckId;
+  final String username;
 
-  const QRDisplayScreen({Key? key, required this.deckId}) : super(key: key);
+  const QRDisplayScreen({Key? key, required this.deckId, required this.username}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -64,7 +65,9 @@ class QRDisplayScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'They will receive a private copy of this deck in their library.',
+                          username.isNotEmpty
+                              ? 'Shared by $username'
+                              : 'Scan to receive a private copy of this deck.',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 14,

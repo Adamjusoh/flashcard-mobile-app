@@ -25,22 +25,22 @@ class DeckDetailScreen extends StatefulWidget {
 }
 
 class _DeckDetailScreenState extends State<DeckDetailScreen> {
-  String _userRole = 'Student'; // Default to student
+  String _username = ''; // Current user's username for sharing
   final String _currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
 
   @override
   void initState() {
     super.initState();
-    _fetchUserRole();
+    _fetchUserData();
   }
 
-  // Fetch the current user's role to determine UI permissions (Requirement 4)
-  Future<void> _fetchUserRole() async {
+  // Fetch the current user's role and username
+  Future<void> _fetchUserData() async {
     if (_currentUserId.isEmpty) return;
     final userDoc = await FirebaseFirestore.instance.collection('users').doc(_currentUserId).get();
     if (userDoc.exists && mounted) {
       setState(() {
-        _userRole = userDoc.data()?['role'] ?? 'Student';
+        _username = userDoc.data()?['username'] ?? '';
       });
     }
   }
@@ -78,8 +78,32 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
     }
   }
 
-  // DELETE operation for a single card
+  // DELETE operation for a single card — with confirmation dialog
   Future<void> _deleteCard(String cardId) async {
+    bool confirm = await showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF2E3192),
+        title: const Text('Delete Card?', style: TextStyle(color: Colors.white)),
+        content: const Text(
+          'This card will be permanently removed from the deck.',
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel', style: TextStyle(color: Colors.white)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete', style: TextStyle(color: Colors.redAccent)),
+          ),
+        ],
+      ),
+    ) ?? false;
+
+    if (!confirm) return;
+
     try {
       await FirebaseFirestore.instance
           .collection('decks')
@@ -87,8 +111,23 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
           .collection('cards')
           .doc(cardId)
           .delete();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Card deleted.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
     } catch (e) {
-      print("Error deleting card: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error deleting card: $e'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
     }
   }
 
@@ -190,14 +229,22 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
-                              // Share Button - Only visible to Educators
-                              if (_userRole == 'Educator')
+                              // Share Button - Visible to any author of the deck
+                              if (isAuthor)
                                 _buildActionIcon(
                                   icon: Icons.qr_code_2_rounded,
                                   label: 'Share',
                                   color: Colors.greenAccent,
                                   onTap: () {
-                                    Navigator.push(context, MaterialPageRoute(builder: (_) => QRDisplayScreen(deckId: widget.deckId)));
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => QRDisplayScreen(
+                                          deckId: widget.deckId,
+                                          username: _username,
+                                        ),
+                                      ),
+                                    );
                                   },
                                 ),
 
@@ -206,7 +253,7 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
                                 _buildActionIcon(
                                   icon: Icons.add_circle_outline_rounded,
                                   label: 'Add Card',
-                                  color: Colors.blueAccent, // Added the creation button here
+                                  color: Colors.blueAccent,
                                   onTap: () {
                                     Navigator.push(context, MaterialPageRoute(builder: (_) => AddEditCardScreen(deckId: widget.deckId)));
                                   },
