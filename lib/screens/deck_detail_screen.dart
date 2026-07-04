@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../models/flashcard.dart';
 
 import 'study_screen.dart';
 import 'add_edit_card_screen.dart';
@@ -203,10 +204,8 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                   itemCount: cards.length,
                   itemBuilder: (context, index) {
-                    var cardData = cards[index].data() as Map<String, dynamic>;
-                    String cardId = cards[index].id;
-
-                    return _buildCardTile(cardData, cardId, isAuthor);
+                    Flashcard card = Flashcard.fromFirestore(cards[index]);
+                    return _buildCardTile(card, isAuthor);
                   },
                 );
               },
@@ -310,7 +309,7 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
   }
 
   // Helper widget for individual card list items
-  Widget _buildCardTile(Map<String, dynamic> cardData, String cardId, bool isAuthor) {
+  Widget _buildCardTile(Flashcard card, bool isAuthor) {
     return Card(
       elevation: 4,
       shadowColor: Colors.black.withValues(alpha: 0.08),
@@ -329,7 +328,7 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    cardData['front'] ?? '',
+                    card.front,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -340,7 +339,7 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    cardData['back'] ?? '',
+                    card.back,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(color: Color(0xFF64748B), fontSize: 13),
@@ -348,37 +347,70 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
                 ],
               ),
             ),
-            if (isAuthor) ...[
-              const SizedBox(width: 8),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SizedBox(
-                    width: 36,
-                    height: 36,
-                    child: IconButton(
-                      padding: EdgeInsets.zero,
-                      icon: const Icon(Icons.edit_outlined, color: Color(0xFF64748B), size: 18),
-                      onPressed: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => AddEditCardScreen(deckId: widget.deckId, cardId: cardId, initialFront: cardData['front'], initialBack: cardData['back'])));
-                      },
+            const SizedBox(width: 8),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: _getMasteryColor(card.masteryLevel).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: _getMasteryColor(card.masteryLevel).withValues(alpha: 0.3)),
+                  ),
+                  child: Text(
+                    card.masteryTag,
+                    style: TextStyle(
+                      color: _getMasteryColor(card.masteryLevel),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                  SizedBox(
-                    width: 36,
-                    height: 36,
-                    child: IconButton(
-                      padding: EdgeInsets.zero,
-                      icon: const Icon(Icons.delete_outline, color: Color(0xFFDC2626), size: 18),
-                      onPressed: () => _deleteCard(cardId),
-                    ),
+                ),
+                if (isAuthor) ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(
+                        width: 36,
+                        height: 36,
+                        child: IconButton(
+                          padding: EdgeInsets.zero,
+                          icon: const Icon(Icons.edit_outlined, color: Color(0xFF64748B), size: 18),
+                          onPressed: () {
+                            Navigator.push(context, MaterialPageRoute(builder: (_) => AddEditCardScreen(deckId: widget.deckId, cardId: card.id, initialFront: card.front, initialBack: card.back)));
+                          },
+                        ),
+                      ),
+                      SizedBox(
+                        width: 36,
+                        height: 36,
+                        child: IconButton(
+                          padding: EdgeInsets.zero,
+                          icon: const Icon(Icons.delete_outline, color: Color(0xFFDC2626), size: 18),
+                          onPressed: () => _deleteCard(card.id),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
-              ),
-            ],
+              ],
+            ),
           ],
         ),
       ),
     );
+  }
+
+  Color _getMasteryColor(MasteryLevel level) {
+    switch (level) {
+      case MasteryLevel.newCard:
+        return const Color(0xFF3B82F6); // Blue
+      case MasteryLevel.learning:
+        return const Color(0xFFF59E0B); // Amber
+      case MasteryLevel.review:
+        return const Color(0xFF16A34A); // Green
+    }
   }
 }
