@@ -351,21 +351,44 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: _getMasteryColor(card.masteryLevel).withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: _getMasteryColor(card.masteryLevel).withValues(alpha: 0.3)),
-                  ),
-                  child: Text(
-                    card.masteryTag,
-                    style: TextStyle(
-                      color: _getMasteryColor(card.masteryLevel),
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (card.isDue())
+                      Container(
+                        margin: const EdgeInsets.only(right: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFDC2626).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: const Color(0xFFDC2626).withValues(alpha: 0.3)),
+                        ),
+                        child: const Text(
+                          'Due',
+                          style: TextStyle(
+                            color: Color(0xFFDC2626),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: _getMasteryColor(card.masteryLevel).withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: _getMasteryColor(card.masteryLevel).withValues(alpha: 0.3)),
+                      ),
+                      child: Text(
+                        card.masteryTag,
+                        style: TextStyle(
+                          color: _getMasteryColor(card.masteryLevel),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
                 if (isAuthor) ...[
                   const SizedBox(height: 8),

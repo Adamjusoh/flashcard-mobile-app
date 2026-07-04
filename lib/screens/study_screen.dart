@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../utils/sm2_algorithm.dart';
+import '../models/flashcard.dart';
 
 class StudyScreen extends StatefulWidget {
   final String deckId;
@@ -14,7 +15,7 @@ class StudyScreen extends StatefulWidget {
 }
 
 class _StudyScreenState extends State<StudyScreen> {
-  List<QueryDocumentSnapshot> _allCards = [];
+  List<Flashcard> _allCards = [];
   int _totalCardsCount = 0;
   int _currentIndex = 0;
   bool _isFlipped = false;
@@ -37,21 +38,15 @@ class _StudyScreenState extends State<StudyScreen> {
 
       List<QueryDocumentSnapshot> allDocs = snapshot.docs.toList();
       int totalCount = allDocs.length;
-      final now = DateTime.now();
+      
+      List<Flashcard> allFlashcards = allDocs.map((doc) => Flashcard.fromFirestore(doc)).toList();
 
       // Filter to maximize SM-2 algorithm: Only cards due today or earlier
-      List<QueryDocumentSnapshot> dueCards = allDocs.where((doc) {
-        final data = doc.data() as Map<String, dynamic>;
-        final nextReviewDate = (data['nextReviewDate'] as Timestamp?)?.toDate();
-        if (nextReviewDate == null) return true; // New cards are due
-        return nextReviewDate.isBefore(now) || nextReviewDate.isAtSameMomentAs(now);
-      }).toList();
+      List<Flashcard> dueCards = allFlashcards.where((card) => card.isDue()).toList();
 
       // Sort locally: Hardest cards (lowest easeFactor) appear first!
       dueCards.sort((a, b) {
-        double easeA = (a.data() as Map<String, dynamic>)['easeFactor'] ?? 2.5;
-        double easeB = (b.data() as Map<String, dynamic>)['easeFactor'] ?? 2.5;
-        return easeA.compareTo(easeB);
+        return a.easeFactor.compareTo(b.easeFactor);
       });
 
       setState(() {
@@ -69,14 +64,13 @@ class _StudyScreenState extends State<StudyScreen> {
   Future<void> _handleGrade(int grade) async {
     if (_currentIndex >= _allCards.length) return;
 
-    final cardDoc = _allCards[_currentIndex];
-    final cardData = cardDoc.data() as Map<String, dynamic>;
+    final currentCard = _allCards[_currentIndex];
 
     SM2Response result = SM2Algorithm.calculate(
       grade: grade,
-      currentInterval: cardData['interval'] ?? 0,
-      currentRepetitions: cardData['repetitions'] ?? 0,
-      currentEaseFactor: (cardData['easeFactor'] ?? 2.5).toDouble(),
+      currentInterval: currentCard.interval,
+      currentRepetitions: currentCard.repetitions,
+      currentEaseFactor: currentCard.easeFactor,
     );
 
     // Update the database with the new stats behind the scenes
@@ -84,7 +78,7 @@ class _StudyScreenState extends State<StudyScreen> {
         .collection('decks')
         .doc(widget.deckId)
         .collection('cards')
-        .doc(cardDoc.id)
+        .doc(currentCard.id)
         .update({
       'interval': result.interval,
       'repetitions': result.repetitions,
@@ -230,8 +224,7 @@ class _StudyScreenState extends State<StudyScreen> {
       );
     }
 
-    final currentCardDoc = _allCards[_currentIndex];
-    final currentCard = currentCardDoc.data() as Map<String, dynamic>;
+    final currentCard = _allCards[_currentIndex];
 
     return Column(
       children: [
@@ -248,9 +241,9 @@ class _StudyScreenState extends State<StudyScreen> {
                     style: const TextStyle(color: Color(0xFF64748B), fontSize: 13, fontWeight: FontWeight.w500),
                   ),
                   Text(
-                    _getDifficultyLabel(currentCard['easeFactor'] ?? 2.5),
+                    currentCard.masteryTag,
                     style: TextStyle(
-                      color: _getDifficultyColor(currentCard['easeFactor'] ?? 2.5),
+                      color: _getMasteryColor(currentCard.masteryLevel),
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
                     ),
@@ -275,7 +268,7 @@ class _StudyScreenState extends State<StudyScreen> {
 
         // 3. Swipeable & Flippable Card
         Dismissible(
-          key: Key(currentCardDoc.id), // Unique key for the swiper
+          key: Key(currentCard.id), // Unique key for the swiper
           direction: DismissDirection.horizontal, // Only allow left/right swipes
 
           // Background when swiping RIGHT (Hard)
@@ -307,17 +300,17 @@ class _StudyScreenState extends State<StudyScreen> {
           ),
 
           onDismissed: (direction) {
-            if (direction == DismissDirection.endToStart) {
-              _handleGrade(2); // Swipe Left = Easy
+            if (direction == DismissDirection.startToEnd) {
+              _handleGrade(0); // Hard
             } else {
-              _handleGrade(0); // Swipe Right = Hard
+              _handleGrade(2); // Easy
             }
           },
-
           child: GestureDetector(
             onTap: () {
-              // Now toggles back and forth infinitely!
-              setState(() => _isFlipped = !_isFlipped);
+              setState(() {
+                _isFlipped = !_isFlipped;
+              });
             },
             child: TweenAnimationBuilder(
               tween: Tween<double>(begin: 0, end: _isFlipped ? pi : 0),
@@ -334,9 +327,9 @@ class _StudyScreenState extends State<StudyScreen> {
                       ? Transform(
                     alignment: Alignment.center,
                     transform: Matrix4.identity()..rotateY(pi),
-                    child: _buildCardFace(currentCard['back'] ?? '', isFront: false),
+                    child: _buildCardFace(currentCard.back, isFront: false),
                   )
-                      : _buildCardFace(currentCard['front'] ?? '', isFront: true),
+                      : _buildCardFace(currentCard.front, isFront: true),
                 );
               },
             ),
@@ -355,11 +348,11 @@ class _StudyScreenState extends State<StudyScreen> {
               padding: const EdgeInsets.only(bottom: 16.0, left: 20, right: 20),
               child: Row(
                 children: [
-                  Expanded(child: _buildGradeButton(0, 'Again', const Color(0xFFDC2626))),
+                  Expanded(child: _buildGradeButton(0, 'Hard', const Color(0xFFDC2626), currentCard)),
                   const SizedBox(width: 10),
-                  Expanded(child: _buildGradeButton(1, 'Good', const Color(0xFFF59E0B))),
+                  Expanded(child: _buildGradeButton(1, 'Normal', const Color(0xFFF59E0B), currentCard)),
                   const SizedBox(width: 10),
-                  Expanded(child: _buildGradeButton(2, 'Easy', const Color(0xFF16A34A))),
+                  Expanded(child: _buildGradeButton(2, 'Easy', const Color(0xFF16A34A), currentCard)),
                 ],
               ),
             ),
@@ -462,7 +455,14 @@ class _StudyScreenState extends State<StudyScreen> {
     );
   }
 
-  Widget _buildGradeButton(int grade, String label, Color color) {
+  Widget _buildGradeButton(int grade, String label, Color color, Flashcard currentCard) {
+    String previewInterval = SM2Algorithm.previewIntervalString(
+      grade: grade,
+      currentInterval: currentCard.interval,
+      currentRepetitions: currentCard.repetitions,
+      currentEaseFactor: currentCard.easeFactor,
+    );
+
     return SizedBox(
       height: 52,
       child: ElevatedButton(
@@ -476,26 +476,38 @@ class _StudyScreenState extends State<StudyScreen> {
             side: BorderSide(color: color.withValues(alpha: 0.3), width: 1.5),
           ),
         ),
-        child: Text(
-          label,
-          style: const TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 15,
-          ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              label,
+              style: const TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 14,
+              ),
+            ),
+            Text(
+              previewInterval,
+              style: TextStyle(
+                fontWeight: FontWeight.w500,
+                fontSize: 11,
+                color: color.withValues(alpha: 0.8),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  String _getDifficultyLabel(double easeFactor) {
-    if (easeFactor < 2.0) return 'Hard';
-    if (easeFactor > 2.6) return 'Easy';
-    return 'Normal';
-  }
-
-  Color _getDifficultyColor(double easeFactor) {
-    if (easeFactor < 2.0) return const Color(0xFFDC2626);
-    if (easeFactor > 2.6) return const Color(0xFF16A34A);
-    return const Color(0xFFF59E0B);
+  Color _getMasteryColor(MasteryLevel level) {
+    switch (level) {
+      case MasteryLevel.newCard:
+        return const Color(0xFF3B82F6); // Blue
+      case MasteryLevel.learning:
+        return const Color(0xFFF59E0B); // Amber
+      case MasteryLevel.review:
+        return const Color(0xFF16A34A); // Green
+    }
   }
 }

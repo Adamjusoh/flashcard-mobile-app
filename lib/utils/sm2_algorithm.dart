@@ -47,7 +47,7 @@ class SM2Algorithm {
     } else {
       // User forgot the card (Hard)
       newRepetitions = 0;
-      newInterval = 1; // Reset interval to 1 day
+      newInterval = 0; // Reset interval to 0 days (due immediately/soon)
     }
 
     // Calculate new ease factor (Minimum is 1.3)
@@ -67,5 +67,31 @@ class SM2Algorithm {
       easeFactor: newEaseFactor,
       nextReviewDate: nextReviewDate,
     );
+  }
+
+  /// Formats an interval in days to a human-readable string.
+  static String formatInterval(int days) {
+    if (days == 0) return '<10m';
+    if (days == 1) return '1d';
+    if (days < 30) return '${days}d';
+    if (days < 365) return '${(days / 30).toStringAsFixed(1)}mo';
+    return '${(days / 365).toStringAsFixed(1)}y';
+  }
+
+  /// Calculates a preview of the interval string for a given grade.
+  static String previewIntervalString({
+    required int grade,
+    required int currentInterval,
+    required int currentRepetitions,
+    required double currentEaseFactor,
+  }) {
+    SM2Response response = calculate(
+      grade: grade,
+      currentInterval: currentInterval,
+      currentRepetitions: currentRepetitions,
+      currentEaseFactor: currentEaseFactor,
+    );
+    
+    return formatInterval(response.interval);
   }
 }
