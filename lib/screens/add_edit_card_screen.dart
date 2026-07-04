@@ -74,15 +74,30 @@ class _AddEditCardScreenState extends State<AddEditCardScreen> {
         });
       }
 
-      // Success, pop the screen
       if (mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(widget.cardId == null ? 'Card added!' : 'Card updated!'),
-            backgroundColor: const Color(0xFF16A34A),
-          ),
-        );
+        if (widget.cardId == null) {
+          // CREATE MODE: Clear fields to allow adding more cards
+          _frontController.clear();
+          _backController.clear();
+          setState(() => _isLoading = false);
+          
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Card added! You can add another one.'),
+              backgroundColor: Color(0xFF16A34A),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        } else {
+          // UPDATE MODE: Pop the screen
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Card updated!'),
+              backgroundColor: Color(0xFF16A34A),
+            ),
+          );
+        }
       }
     } catch (e) {
       setState(() => _isLoading = false);
