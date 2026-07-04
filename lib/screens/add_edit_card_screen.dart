@@ -12,12 +12,12 @@ class AddEditCardScreen extends StatefulWidget {
   final String? initialBack;
 
   const AddEditCardScreen({
-    Key? key,
+    super.key,
     required this.deckId,
     this.cardId,
     this.initialFront,
     this.initialBack,
-  }) : super(key: key);
+  });
 
   @override
   _AddEditCardScreenState createState() => _AddEditCardScreenState();

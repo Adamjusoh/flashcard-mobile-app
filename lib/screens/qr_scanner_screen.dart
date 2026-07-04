@@ -8,10 +8,10 @@ class QRScannerScreen extends StatefulWidget {
   final VoidCallback? onScanSuccess;
 
   const QRScannerScreen({
-    Key? key,
+    super.key,
     this.isActive = true,
     this.onScanSuccess,
-  }) : super(key: key);
+  });
 
   @override
   _QRScannerScreenState createState() => _QRScannerScreenState();
@@ -179,7 +179,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                     'Position the QR code within the frame',
                     style: TextStyle(
                       fontSize: 15,
-                      color: Colors.white.withOpacity(0.7),
+                      color: Colors.white.withValues(alpha: 0.7),
                     ),
                   ),
                 ],
@@ -244,13 +244,20 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                   // Loading Overlay when processing
                   if (_isProcessing)
                     Container(
-                      color: Colors.black.withOpacity(0.6),
+                      color: Colors.black.withValues(alpha: 0.6),
                       child: Center(
                         child: Container(
                           padding: const EdgeInsets.all(28),
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.1),
+                                blurRadius: 20,
+                                offset: const Offset(0, 10),
+                              ),
+                            ],
                           ),
                           child: const Column(
                             mainAxisSize: MainAxisSize.min,

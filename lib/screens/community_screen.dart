@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class CommunityScreen extends StatefulWidget {
-  const CommunityScreen({Key? key}) : super(key: key);
+  const CommunityScreen({super.key});
 
   @override
   _CommunityScreenState createState() => _CommunityScreenState();
@@ -101,12 +101,12 @@ class _CommunityScreenState extends State<CommunityScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+            const Padding(
+              padding: EdgeInsets.fromLTRB(24, 24, 24, 8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Explore',
                     style: TextStyle(
                       fontSize: 28,
@@ -114,8 +114,8 @@ class _CommunityScreenState extends State<CommunityScreen> {
                       color: Color(0xFF0F172A),
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  const Text(
+                  SizedBox(height: 4),
+                  Text(
                     'Discover public decks shared by Educators.',
                     style: TextStyle(
                       fontSize: 15,
@@ -140,13 +140,13 @@ class _CommunityScreenState extends State<CommunityScreen> {
                   }
 
                   if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                    return Center(
+                    return const Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.explore_outlined, size: 56, color: const Color(0xFF94A3B8)),
-                          const SizedBox(height: 12),
-                          const Text(
+                          Icon(Icons.explore_outlined, size: 56, color: Color(0xFF94A3B8)),
+                          SizedBox(height: 12),
+                          Text(
                             'No public decks available right now.',
                             style: TextStyle(color: Color(0xFF64748B), fontSize: 15),
                           ),
@@ -198,7 +198,8 @@ class _CommunityScreenState extends State<CommunityScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10.0),
       child: Card(
-        elevation: 0,
+        elevation: 4,
+        shadowColor: Colors.black.withValues(alpha: 0.08),
         color: Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(14),
@@ -213,7 +214,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                 height: 44,
                 width: 44,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF0ABFC).withOpacity(0.15),
+                  color: const Color(0xFFF0ABFC).withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(11),
                 ),
                 child: const Icon(Icons.public_rounded, color: Color(0xFFA855F7), size: 22),

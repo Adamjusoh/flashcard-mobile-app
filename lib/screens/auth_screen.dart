@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AuthScreen extends StatefulWidget {
-  const AuthScreen({Key? key}) : super(key: key);
+  const AuthScreen({super.key});
 
   @override
   _AuthScreenState createState() => _AuthScreenState();
@@ -61,18 +61,22 @@ class _AuthScreenState extends State<AuthScreen> {
       if (err.message != null) {
         message = err.message!;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: const Color(0xFFDC2626),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            backgroundColor: const Color(0xFFDC2626),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     } catch (err) {
-      print(err);
+      // Ignored
     }
 
-    setState(() => _isLoading = false);
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -93,8 +97,15 @@ class _AuthScreenState extends State<AuthScreen> {
                   decoration: BoxDecoration(
                     color: const Color(0xFF4F46E5),
                     borderRadius: BorderRadius.circular(18),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF4F46E5).withValues(alpha: 0.3),
+                        blurRadius: 12,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
                   ),
-                  child: const Icon(Icons.bolt_rounded, size: 40, color: Colors.white),
+                  child: const Icon(Icons.style_rounded, size: 40, color: Colors.white),
                 ),
                 const SizedBox(height: 16),
                 const Text(
@@ -117,8 +128,8 @@ class _AuthScreenState extends State<AuthScreen> {
 
                 // Auth Card
                 Card(
-                  elevation: 2,
-                  shadowColor: Colors.black.withOpacity(0.08),
+                  elevation: 6,
+                  shadowColor: Colors.black.withValues(alpha: 0.15),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
                   ),
@@ -220,7 +231,7 @@ class _AuthScreenState extends State<AuthScreen> {
                                 labelText: 'I am a...',
                                 prefixIcon: Icon(Icons.person_outline, size: 20),
                               ),
-                              value: _role,
+                              initialValue: _role,
                               items: ['Student', 'Educator'].map((String role) {
                                 return DropdownMenuItem(
                                   value: role,

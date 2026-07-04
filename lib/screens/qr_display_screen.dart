@@ -5,7 +5,7 @@ class QRDisplayScreen extends StatelessWidget {
   final String deckId;
   final String username;
 
-  const QRDisplayScreen({Key? key, required this.deckId, required this.username}) : super(key: key);
+  const QRDisplayScreen({super.key, required this.deckId, required this.username});
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +34,7 @@ class QRDisplayScreen extends StatelessWidget {
                   height: 56,
                   width: 56,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF4F46E5).withOpacity(0.1),
+                    color: const Color(0xFF4F46E5).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(14),
                   ),
                   child: const Icon(Icons.qr_code_scanner_rounded, size: 30, color: Color(0xFF4F46E5)),
@@ -63,7 +63,7 @@ class QRDisplayScreen extends StatelessWidget {
                     border: Border.all(color: const Color(0xFFE2E8F0)),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: Colors.black.withValues(alpha: 0.05),
                         blurRadius: 20,
                         offset: const Offset(0, 4),
                       ),

@@ -7,7 +7,7 @@ import 'profile_screen.dart';
 import 'add_edit_deck_screen.dart';
 
 class MainTabController extends StatefulWidget {
-  const MainTabController({Key? key}) : super(key: key);
+  const MainTabController({super.key});
 
   @override
   _MainTabControllerState createState() => _MainTabControllerState();
@@ -59,8 +59,8 @@ class _MainTabControllerState extends State<MainTabController> {
         padding: EdgeInsets.zero,
         color: Colors.white,
         surfaceTintColor: Colors.transparent,
-        elevation: 8,
-        shadowColor: Colors.black.withOpacity(0.1),
+        elevation: 20,
+        shadowColor: Colors.black.withValues(alpha: 0.2),
         notchMargin: 8,
         shape: const CircularNotchedRectangle(),
         child: Row(

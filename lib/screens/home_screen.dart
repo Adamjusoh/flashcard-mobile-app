@@ -6,7 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'deck_detail_screen.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -19,12 +19,12 @@ class HomeScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Clean header
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+            const Padding(
+              padding: EdgeInsets.fromLTRB(24, 24, 24, 8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'My Library',
                     style: TextStyle(
                       fontSize: 28,
@@ -32,8 +32,8 @@ class HomeScreen extends StatelessWidget {
                       color: Color(0xFF0F172A),
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  const Text(
+                  SizedBox(height: 4),
+                  Text(
                     'Your flashcard decks',
                     style: TextStyle(
                       fontSize: 15,
@@ -57,13 +57,13 @@ class HomeScreen extends StatelessWidget {
                   }
 
                   if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                    return Center(
+                    return const Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.style_outlined, size: 64, color: const Color(0xFF94A3B8)),
-                          const SizedBox(height: 16),
-                          const Text(
+                          Icon(Icons.style_outlined, size: 64, color: Color(0xFF94A3B8)),
+                          SizedBox(height: 16),
+                          Text(
                             'No decks yet',
                             style: TextStyle(
                               color: Color(0xFF0F172A),
@@ -71,8 +71,8 @@ class HomeScreen extends StatelessWidget {
                               fontWeight: FontWeight.w600,
                             ),
                           ),
-                          const SizedBox(height: 8),
-                          const Text(
+                          SizedBox(height: 8),
+                          Text(
                             'Tap the + button to create one!',
                             style: TextStyle(color: Color(0xFF64748B), fontSize: 14),
                           ),
@@ -111,7 +111,8 @@ class HomeScreen extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10.0),
       child: Card(
-        elevation: 0,
+        elevation: 4,
+        shadowColor: Colors.black.withValues(alpha: 0.08),
         color: Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(14),
@@ -154,7 +155,7 @@ class HomeScreen extends StatelessWidget {
                   height: 46,
                   width: 46,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF4F46E5).withOpacity(0.08),
+                    color: const Color(0xFF4F46E5).withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Icon(Icons.style_rounded, color: Color(0xFF4F46E5), size: 24),

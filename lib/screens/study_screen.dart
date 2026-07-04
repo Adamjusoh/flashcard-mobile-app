@@ -7,7 +7,7 @@ class StudyScreen extends StatefulWidget {
   final String deckId;
   final String deckTitle;
 
-  const StudyScreen({Key? key, required this.deckId, required this.deckTitle}) : super(key: key);
+  const StudyScreen({super.key, required this.deckId, required this.deckTitle});
 
   @override
   _StudyScreenState createState() => _StudyScreenState();
@@ -48,7 +48,7 @@ class _StudyScreenState extends State<StudyScreen> {
         _isLoading = false;
       });
     } catch (e) {
-      print("Error fetching cards: $e");
+      debugPrint("Error fetching cards: $e");
       setState(() => _isLoading = false);
     }
   }
@@ -118,7 +118,7 @@ class _StudyScreenState extends State<StudyScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.style_outlined, size: 64, color: const Color(0xFF94A3B8)),
+          const Icon(Icons.style_outlined, size: 64, color: Color(0xFF94A3B8)),
           const SizedBox(height: 16),
           const Text(
             'This deck is empty!',
@@ -265,9 +265,9 @@ class _StudyScreenState extends State<StudyScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.replay_rounded, color: const Color(0xFFDC2626).withOpacity(0.7), size: 44),
+                Icon(Icons.replay_rounded, color: const Color(0xFFDC2626).withValues(alpha: 0.7), size: 44),
                 const SizedBox(height: 6),
-                Text('AGAIN', style: TextStyle(color: const Color(0xFFDC2626).withOpacity(0.7), fontWeight: FontWeight.bold, fontSize: 13)),
+                Text('AGAIN', style: TextStyle(color: const Color(0xFFDC2626).withValues(alpha: 0.7), fontWeight: FontWeight.bold, fontSize: 13)),
               ],
             ),
           ),
@@ -279,9 +279,9 @@ class _StudyScreenState extends State<StudyScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.check_circle_outline_rounded, color: const Color(0xFF16A34A).withOpacity(0.7), size: 44),
+                Icon(Icons.check_circle_outline_rounded, color: const Color(0xFF16A34A).withValues(alpha: 0.7), size: 44),
                 const SizedBox(height: 6),
-                Text('EASY', style: TextStyle(color: const Color(0xFF16A34A).withOpacity(0.7), fontWeight: FontWeight.bold, fontSize: 13)),
+                Text('EASY', style: TextStyle(color: const Color(0xFF16A34A).withValues(alpha: 0.7), fontWeight: FontWeight.bold, fontSize: 13)),
               ],
             ),
           ),
@@ -348,11 +348,11 @@ class _StudyScreenState extends State<StudyScreen> {
 
         // Tap hint when not flipped
         if (!_isFlipped)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 24.0),
+          const Padding(
+            padding: EdgeInsets.only(bottom: 24.0),
             child: Text(
               'Tap card to reveal answer',
-              style: TextStyle(color: const Color(0xFF94A3B8), fontSize: 13),
+              style: TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
             ),
           ),
 
@@ -372,7 +372,7 @@ class _StudyScreenState extends State<StudyScreen> {
         border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
@@ -390,8 +390,8 @@ class _StudyScreenState extends State<StudyScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 decoration: BoxDecoration(
                   color: isFront
-                      ? const Color(0xFF4F46E5).withOpacity(0.08)
-                      : const Color(0xFF16A34A).withOpacity(0.08),
+                      ? const Color(0xFF4F46E5).withValues(alpha: 0.08)
+                      : const Color(0xFF16A34A).withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
@@ -423,7 +423,7 @@ class _StudyScreenState extends State<StudyScreen> {
             ),
           ),
           // Tap hint
-          Positioned(
+          const Positioned(
             bottom: 20,
             left: 0,
             right: 0,
@@ -431,7 +431,7 @@ class _StudyScreenState extends State<StudyScreen> {
               child: Text(
                 'Tap to flip',
                 style: TextStyle(
-                  color: const Color(0xFF94A3B8),
+                  color: Color(0xFF94A3B8),
                   fontSize: 12,
                 ),
               ),
@@ -448,17 +448,17 @@ class _StudyScreenState extends State<StudyScreen> {
       child: ElevatedButton(
         onPressed: () => _handleGrade(grade),
         style: ElevatedButton.styleFrom(
-          backgroundColor: color.withOpacity(0.1),
+          backgroundColor: color.withValues(alpha: 0.1),
           foregroundColor: color,
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
-            side: BorderSide(color: color.withOpacity(0.3), width: 1.5),
+            side: BorderSide(color: color.withValues(alpha: 0.3), width: 1.5),
           ),
         ),
         child: Text(
           label,
-          style: TextStyle(
+          style: const TextStyle(
             fontWeight: FontWeight.w700,
             fontSize: 15,
           ),

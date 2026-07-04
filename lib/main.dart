@@ -21,7 +21,7 @@ void main() async {
 }
 
 class RecallApp extends StatelessWidget {
-  const RecallApp({Key? key}) : super(key: key);
+  const RecallApp({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -10,11 +10,11 @@ class AddEditDeckScreen extends StatefulWidget {
   final bool? initialIsPublic;
 
   const AddEditDeckScreen({
-    Key? key,
+    super.key,
     this.deckId,
     this.initialTitle,
     this.initialIsPublic,
-  }) : super(key: key);
+  });
 
   @override
   _AddEditDeckScreenState createState() => _AddEditDeckScreenState();
@@ -167,15 +167,22 @@ class _AddEditDeckScreenState extends State<AddEditDeckScreen> {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                     border: Border.all(color: const Color(0xFFE2E8F0)),
                   ),
                   child: Row(
                     children: [
-                      Expanded(
+                      const Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               'Public Deck',
                               style: TextStyle(
                                 color: Color(0xFF0F172A),
@@ -183,17 +190,17 @@ class _AddEditDeckScreenState extends State<AddEditDeckScreen> {
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
-                            const SizedBox(height: 2),
+                            SizedBox(height: 2),
                             Text(
                               'Allow students to scan and copy this deck.',
-                              style: TextStyle(color: const Color(0xFF64748B), fontSize: 12),
+                              style: TextStyle(color: Color(0xFF64748B), fontSize: 12),
                             ),
                           ],
                         ),
                       ),
                       Switch.adaptive(
                         value: _isPublic,
-                        activeColor: const Color(0xFF4F46E5),
+                        activeTrackColor: const Color(0xFF4F46E5),
                         onChanged: (val) {
                           setState(() => _isPublic = val);
                         },

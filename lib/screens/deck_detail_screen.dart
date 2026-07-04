@@ -13,11 +13,11 @@ class DeckDetailScreen extends StatefulWidget {
   final String authorId;
 
   const DeckDetailScreen({
-    Key? key,
+    super.key,
     required this.deckId,
     required this.deckTitle,
     required this.authorId,
-  }) : super(key: key);
+  });
 
   @override
   _DeckDetailScreenState createState() => _DeckDetailScreenState();
@@ -73,9 +73,11 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error deleting deck: $e'), backgroundColor: const Color(0xFFDC2626)),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error deleting deck: $e'), backgroundColor: const Color(0xFFDC2626)),
+        );
+      }
     }
   }
 
@@ -180,13 +182,13 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
                 }
 
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return Center(
+                  return const Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.note_add_outlined, size: 56, color: const Color(0xFF94A3B8)),
-                        const SizedBox(height: 12),
-                        const Text(
+                        Icon(Icons.note_add_outlined, size: 56, color: Color(0xFF94A3B8)),
+                        SizedBox(height: 12),
+                        Text(
                           'No cards in this deck yet',
                           style: TextStyle(color: Color(0xFF64748B), fontSize: 16),
                         ),
@@ -214,9 +216,16 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
           // 2. Bottom Action Panel
           Container(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: Colors.white,
-              border: Border(top: BorderSide(color: Color(0xFFE2E8F0), width: 1)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, -4),
+                ),
+              ],
+              border: const Border(top: BorderSide(color: Color(0xFFE2E8F0), width: 1)),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -303,7 +312,8 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
   // Helper widget for individual card list items
   Widget _buildCardTile(Map<String, dynamic> cardData, String cardId, bool isAuthor) {
     return Card(
-      elevation: 0,
+      elevation: 4,
+      shadowColor: Colors.black.withValues(alpha: 0.08),
       margin: const EdgeInsets.only(bottom: 8),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
