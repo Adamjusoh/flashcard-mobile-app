@@ -15,6 +15,7 @@ class StudyScreen extends StatefulWidget {
 
 class _StudyScreenState extends State<StudyScreen> {
   List<QueryDocumentSnapshot> _allCards = [];
+  int _totalCardsCount = 0;
   int _currentIndex = 0;
   bool _isFlipped = false;
   bool _isLoading = true;
@@ -34,17 +35,28 @@ class _StudyScreenState extends State<StudyScreen> {
           .collection('cards')
           .get();
 
-      List<QueryDocumentSnapshot> cards = snapshot.docs.toList();
+      List<QueryDocumentSnapshot> allDocs = snapshot.docs.toList();
+      int totalCount = allDocs.length;
+      final now = DateTime.now();
+
+      // Filter to maximize SM-2 algorithm: Only cards due today or earlier
+      List<QueryDocumentSnapshot> dueCards = allDocs.where((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        final nextReviewDate = (data['nextReviewDate'] as Timestamp?)?.toDate();
+        if (nextReviewDate == null) return true; // New cards are due
+        return nextReviewDate.isBefore(now) || nextReviewDate.isAtSameMomentAs(now);
+      }).toList();
 
       // Sort locally: Hardest cards (lowest easeFactor) appear first!
-      cards.sort((a, b) {
+      dueCards.sort((a, b) {
         double easeA = (a.data() as Map<String, dynamic>)['easeFactor'] ?? 2.5;
         double easeB = (b.data() as Map<String, dynamic>)['easeFactor'] ?? 2.5;
         return easeA.compareTo(easeB);
       });
 
       setState(() {
-        _allCards = cards;
+        _totalCardsCount = totalCount;
+        _allCards = dueCards;
         _isLoading = false;
       });
     } catch (e) {
@@ -114,20 +126,26 @@ class _StudyScreenState extends State<StudyScreen> {
   }
 
   Widget _buildEmptyState() {
+    bool isCaughtUp = _totalCardsCount > 0 && _allCards.isEmpty;
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.style_outlined, size: 64, color: Color(0xFF94A3B8)),
+          Icon(
+            isCaughtUp ? Icons.check_circle_outline_rounded : Icons.style_outlined, 
+            size: 64, 
+            color: isCaughtUp ? const Color(0xFF16A34A) : const Color(0xFF94A3B8)
+          ),
           const SizedBox(height: 16),
-          const Text(
-            'This deck is empty!',
-            style: TextStyle(fontSize: 20, color: Color(0xFF0F172A), fontWeight: FontWeight.w600),
+          Text(
+            isCaughtUp ? "You're all caught up!" : 'This deck is empty!',
+            style: const TextStyle(fontSize: 20, color: Color(0xFF0F172A), fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Add some cards to start studying.',
-            style: TextStyle(fontSize: 14, color: Color(0xFF64748B)),
+          Text(
+            isCaughtUp ? "No cards due for review right now." : 'Add some cards to start studying.',
+            style: const TextStyle(fontSize: 14, color: Color(0xFF64748B)),
           ),
           const SizedBox(height: 28),
           OutlinedButton(
@@ -168,9 +186,9 @@ class _StudyScreenState extends State<StudyScreen> {
                 style: TextStyle(fontSize: 24, color: Color(0xFF0F172A), fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
-              Text(
-                'You reviewed all ${_allCards.length} cards.',
-                style: const TextStyle(fontSize: 16, color: Color(0xFF64748B)),
+              const Text(
+                'You reviewed all due cards.',
+                style: TextStyle(fontSize: 16, color: Color(0xFF64748B)),
               ),
               const SizedBox(height: 32),
               Row(
@@ -196,11 +214,13 @@ class _StudyScreenState extends State<StudyScreen> {
                     onPressed: () {
                       // Restart the session
                       setState(() {
+                        _isLoading = true;
                         _currentIndex = 0;
                         _isFlipped = false;
                       });
+                      _fetchAllCardsAndSort();
                     },
-                    child: const Text('Study Again'),
+                    child: const Text('Refresh'),
                   ),
                 ],
               ),
