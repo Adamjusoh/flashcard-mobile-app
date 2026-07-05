@@ -13,16 +13,18 @@ class Flashcard {
   final int interval;
   final int repetitions;
   final double easeFactor;
-  final Timestamp nextReviewDate;
+  final DateTime? nextReviewDate;
+  final DateTime? createdAt;
 
   Flashcard({
     required this.id,
     required this.front,
     required this.back,
-    required this.interval,
-    required this.repetitions,
-    required this.easeFactor,
-    required this.nextReviewDate,
+    this.interval = 0,
+    this.repetitions = 0,
+    this.easeFactor = 2.5,
+    this.nextReviewDate,
+    this.createdAt,
   });
 
   factory Flashcard.fromFirestore(DocumentSnapshot doc) {
@@ -34,23 +36,31 @@ class Flashcard {
       interval: data['interval'] ?? 0,
       repetitions: data['repetitions'] ?? 0,
       easeFactor: (data['easeFactor'] ?? 2.5).toDouble(),
-      nextReviewDate: data['nextReviewDate'] ?? Timestamp.now(),
+      nextReviewDate: (data['nextReviewDate'] as Timestamp?)?.toDate(),
+      createdAt: (data['createdAt'] as Timestamp?)?.toDate(),
     );
   }
 
-  bool isDue() {
-    if (interval == 0) return true; // Cards with interval 0 (new or hard) are always due immediately
-    final now = Timestamp.now().toDate();
-    final reviewDate = nextReviewDate.toDate();
-    return now.isAfter(reviewDate) || now.isAtSameMomentAs(reviewDate);
+  Map<String, dynamic> toMap() {
+    return {
+      'front': front,
+      'back': back,
+      'interval': interval,
+      'repetitions': repetitions,
+      'easeFactor': easeFactor,
+      'nextReviewDate': nextReviewDate != null ? Timestamp.fromDate(nextReviewDate!) : null,
+      'createdAt': createdAt != null ? Timestamp.fromDate(createdAt!) : null,
+    };
   }
 
+  /// Calculates the mastery level based on SM-2 state.
   MasteryLevel get masteryLevel {
-    if (repetitions == 0 && interval == 0) return MasteryLevel.newCard;
-    if (interval < 21) return MasteryLevel.learning; // Under 3 weeks interval is learning
-    return MasteryLevel.review; // Over 3 weeks interval is review/mastered
+    if (repetitions == 0) return MasteryLevel.newCard;
+    if (interval < 21) return MasteryLevel.learning;
+    return MasteryLevel.review;
   }
 
+  /// Returns a human-readable tag for the mastery level.
   String get masteryTag {
     switch (masteryLevel) {
       case MasteryLevel.newCard:
@@ -60,5 +70,12 @@ class Flashcard {
       case MasteryLevel.review:
         return 'Review';
     }
+  }
+
+  /// Helper to check if a card is currently due.
+  bool isDue() {
+    if (interval == 0 || nextReviewDate == null) return true; // New or hard cards are inherently due
+    final now = DateTime.now();
+    return nextReviewDate!.isBefore(now) || nextReviewDate!.isAtSameMomentAs(now);
   }
 }

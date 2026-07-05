@@ -1,6 +1,6 @@
 {
-    "name": "final_project",
-    "short_name": "final_project",
+    "name": "Recall",
+    "short_name": "Recall",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
