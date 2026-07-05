@@ -72,7 +72,9 @@ class _AuthScreenState extends State<AuthScreen> {
       print(err);
     }
 
-    setState(() => _isLoading = false);
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
   }
 
   @override
