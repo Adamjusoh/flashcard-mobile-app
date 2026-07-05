@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'admin_dashboard_screen.dart';
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
 
@@ -131,6 +132,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           _buildSectionLabel('Actions'),
                           const SizedBox(height: 8),
                           _buildSettingsGroup([
+                            if (_userRole == 'Admin')
+                              _buildSettingsRow(
+                                icon: Icons.admin_panel_settings_rounded,
+                                label: 'Admin Dashboard',
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => const AdminDashboardScreen()),
+                                  );
+                                },
+                              ),
                             _buildSettingsRow(
                               icon: Icons.logout_rounded,
                               label: 'Log Out',

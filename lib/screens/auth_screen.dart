@@ -94,7 +94,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     color: const Color(0xFF4F46E5),
                     borderRadius: BorderRadius.circular(18),
                   ),
-                  child: const Icon(Icons.bolt_rounded, size: 40, color: Colors.white),
+                  child: const Icon(Icons.view_carousel_rounded, size: 40, color: Colors.white),
                 ),
                 const SizedBox(height: 16),
                 const Text(
@@ -177,8 +177,19 @@ class _AuthScreenState extends State<AuthScreen> {
                             ),
                             obscureText: true,
                             validator: (value) {
-                              if (value == null || value.isEmpty || value.length < 7) {
-                                return 'Password must be at least 7 characters long.';
+                              if (value == null || value.isEmpty || value.length < 8) {
+                                return 'Password must be at least 8 characters long.';
+                              }
+                              if (!_isLogin) {
+                                if (!RegExp(r'[A-Z]').hasMatch(value)) {
+                                  return 'Password must contain at least 1 uppercase letter.';
+                                }
+                                if (!RegExp(r'[0-9]').hasMatch(value)) {
+                                  return 'Password must contain at least 1 number.';
+                                }
+                                if (!RegExp(r'[!@#\$%\^&\*(),.?":{}|<>]').hasMatch(value)) {
+                                  return 'Password must contain at least 1 special character.';
+                                }
                               }
                               return null;
                             },
