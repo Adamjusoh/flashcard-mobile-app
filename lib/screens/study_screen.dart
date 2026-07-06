@@ -10,7 +10,7 @@ class StudyScreen extends StatefulWidget {
   const StudyScreen({super.key, required this.deckId, required this.deckTitle});
 
   @override
-  _StudyScreenState createState() => _StudyScreenState();
+  State<StudyScreen> createState() => _StudyScreenState();
 }
 
 class _StudyScreenState extends State<StudyScreen> {
@@ -105,7 +105,7 @@ class _StudyScreenState extends State<StudyScreen> {
       ),
       body: SafeArea(
         child: _isLoading
-            ? const Center(child: CircularProgressIndicator(color: Color(0xFF4F46E5)))
+            ? const Center(child: CircularProgressIndicator(color: Color(0xFF6366F1)))
             : _allCards.isEmpty
             ? _buildEmptyState()
             : _buildStudyInterface(),
@@ -118,8 +118,16 @@ class _StudyScreenState extends State<StudyScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.style_outlined, size: 64, color: Color(0xFF94A3B8)),
-          const SizedBox(height: 16),
+          Container(
+            height: 80,
+            width: 80,
+            decoration: BoxDecoration(
+              color: const Color(0xFF6366F1).withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: const Icon(Icons.style_outlined, size: 40, color: Color(0xFF6366F1)),
+          ),
+          const SizedBox(height: 20),
           const Text(
             'This deck is empty!',
             style: TextStyle(fontSize: 20, color: Color(0xFF0F172A), fontWeight: FontWeight.w600),
@@ -132,9 +140,10 @@ class _StudyScreenState extends State<StudyScreen> {
           const SizedBox(height: 28),
           OutlinedButton(
             style: OutlinedButton.styleFrom(
-              foregroundColor: const Color(0xFF4F46E5),
-              side: const BorderSide(color: Color(0xFF4F46E5)),
+              foregroundColor: const Color(0xFF6366F1),
+              side: const BorderSide(color: Color(0xFF6366F1)),
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
             onPressed: () => Navigator.pop(context),
             child: const Text('Go Back'),
@@ -147,67 +156,7 @@ class _StudyScreenState extends State<StudyScreen> {
   Widget _buildStudyInterface() {
     // Check if we finished all cards in the deck
     if (_currentIndex >= _allCards.length) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                height: 80,
-                width: 80,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFEF3C7),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Icon(Icons.emoji_events_rounded, size: 44, color: Color(0xFFF59E0B)),
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'Deck Completed!',
-                style: TextStyle(fontSize: 24, color: Color(0xFF0F172A), fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'You reviewed all ${_allCards.length} cards.',
-                style: const TextStyle(fontSize: 16, color: Color(0xFF64748B)),
-              ),
-              const SizedBox(height: 32),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF64748B),
-                      side: const BorderSide(color: Color(0xFFE2E8F0)),
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    ),
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('Exit'),
-                  ),
-                  const SizedBox(width: 12),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF4F46E5),
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    ),
-                    onPressed: () {
-                      // Restart the session
-                      setState(() {
-                        _currentIndex = 0;
-                        _isFlipped = false;
-                      });
-                    },
-                    child: const Text('Study Again'),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      );
+      return _buildCompletionScreen();
     }
 
     final currentCardDoc = _allCards[_currentIndex];
@@ -215,7 +164,7 @@ class _StudyScreenState extends State<StudyScreen> {
 
     return Column(
       children: [
-        // Progress bar + counter
+        // Gradient progress bar + counter
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8),
           child: Column(
@@ -227,24 +176,49 @@ class _StudyScreenState extends State<StudyScreen> {
                     'Card ${_currentIndex + 1} of ${_allCards.length}',
                     style: const TextStyle(color: Color(0xFF64748B), fontSize: 13, fontWeight: FontWeight.w500),
                   ),
-                  Text(
-                    _getDifficultyLabel(currentCard['easeFactor'] ?? 2.5),
-                    style: TextStyle(
-                      color: _getDifficultyColor(currentCard['easeFactor'] ?? 2.5),
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: _getDifficultyColor(currentCard['easeFactor'] ?? 2.5).withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      _getDifficultyLabel(currentCard['easeFactor'] ?? 2.5),
+                      style: TextStyle(
+                        color: _getDifficultyColor(currentCard['easeFactor'] ?? 2.5),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 10),
               ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: LinearProgressIndicator(
-                  value: (_currentIndex + 1) / _allCards.length,
-                  backgroundColor: const Color(0xFFE2E8F0),
-                  valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF4F46E5)),
-                  minHeight: 4,
+                borderRadius: BorderRadius.circular(6),
+                child: SizedBox(
+                  height: 6,
+                  child: Stack(
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE2E8F0),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                      FractionallySizedBox(
+                        widthFactor: (_currentIndex + 1) / _allCards.length,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF6366F1), Color(0xFF8B5CF6), Color(0xFFA78BFA)],
+                            ),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -255,33 +229,31 @@ class _StudyScreenState extends State<StudyScreen> {
 
         // 3. Swipeable & Flippable Card
         Dismissible(
-          key: Key(currentCardDoc.id), // Unique key for the swiper
-          direction: DismissDirection.horizontal, // Only allow left/right swipes
+          key: Key(currentCardDoc.id),
+          direction: DismissDirection.horizontal,
 
-          // Background when swiping RIGHT (Hard)
           background: Container(
             alignment: Alignment.centerLeft,
             padding: const EdgeInsets.only(left: 40.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.replay_rounded, color: const Color(0xFFDC2626).withValues(alpha: 0.7), size: 44),
+                Icon(Icons.replay_rounded, color: const Color(0xFFEF4444).withValues(alpha: 0.7), size: 44),
                 const SizedBox(height: 6),
-                Text('AGAIN', style: TextStyle(color: const Color(0xFFDC2626).withValues(alpha: 0.7), fontWeight: FontWeight.bold, fontSize: 13)),
+                Text('HARD', style: TextStyle(color: const Color(0xFFEF4444).withValues(alpha: 0.7), fontWeight: FontWeight.bold, fontSize: 13)),
               ],
             ),
           ),
 
-          // Background when swiping LEFT (Easy)
           secondaryBackground: Container(
             alignment: Alignment.centerRight,
             padding: const EdgeInsets.only(right: 40.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.check_circle_outline_rounded, color: const Color(0xFF16A34A).withValues(alpha: 0.7), size: 44),
+                Icon(Icons.check_circle_outline_rounded, color: const Color(0xFF10B981).withValues(alpha: 0.7), size: 44),
                 const SizedBox(height: 6),
-                Text('EASY', style: TextStyle(color: const Color(0xFF16A34A).withValues(alpha: 0.7), fontWeight: FontWeight.bold, fontSize: 13)),
+                Text('EASY', style: TextStyle(color: const Color(0xFF10B981).withValues(alpha: 0.7), fontWeight: FontWeight.bold, fontSize: 13)),
               ],
             ),
           ),
@@ -296,7 +268,6 @@ class _StudyScreenState extends State<StudyScreen> {
 
           child: GestureDetector(
             onTap: () {
-              // Now toggles back and forth infinitely!
               setState(() => _isFlipped = !_isFlipped);
             },
             child: TweenAnimationBuilder(
@@ -325,7 +296,7 @@ class _StudyScreenState extends State<StudyScreen> {
 
         const Spacer(),
 
-        // 4. Rating buttons — always visible after flip
+        // 4. Rating buttons — vibrant filled style
         AnimatedOpacity(
           opacity: _isFlipped ? 1.0 : 0.0,
           duration: const Duration(milliseconds: 200),
@@ -335,11 +306,11 @@ class _StudyScreenState extends State<StudyScreen> {
               padding: const EdgeInsets.only(bottom: 16.0, left: 20, right: 20),
               child: Row(
                 children: [
-                  Expanded(child: _buildGradeButton(0, 'Again', const Color(0xFFDC2626))),
+                  Expanded(child: _buildGradeButton(0, 'Hard', const Color(0xFFEF4444))),
                   const SizedBox(width: 10),
-                  Expanded(child: _buildGradeButton(1, 'Good', const Color(0xFFF59E0B))),
+                  Expanded(child: _buildGradeButton(1, 'Normal', const Color(0xFFF59E0B))),
                   const SizedBox(width: 10),
-                  Expanded(child: _buildGradeButton(2, 'Easy', const Color(0xFF16A34A))),
+                  Expanded(child: _buildGradeButton(2, 'Easy', const Color(0xFF10B981))),
                 ],
               ),
             ),
@@ -348,11 +319,18 @@ class _StudyScreenState extends State<StudyScreen> {
 
         // Tap hint when not flipped
         if (!_isFlipped)
-          const Padding(
-            padding: EdgeInsets.only(bottom: 24.0),
-            child: Text(
-              'Tap card to reveal answer',
-              style: TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 24.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.touch_app_outlined, size: 16, color: const Color(0xFF94A3B8).withValues(alpha: 0.7)),
+                const SizedBox(width: 6),
+                const Text(
+                  'Tap card to reveal answer',
+                  style: TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
+                ),
+              ],
             ),
           ),
 
@@ -361,45 +339,158 @@ class _StudyScreenState extends State<StudyScreen> {
     );
   }
 
+  Widget _buildCompletionScreen() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Emoji celebration
+            const Text(
+              '🎉',
+              style: TextStyle(fontSize: 64),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                ),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Text(
+                '🏆  Deck Completed!  ⭐',
+                style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'You reviewed all ${_allCards.length} cards.',
+              style: const TextStyle(fontSize: 16, color: Color(0xFF64748B)),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Great job keeping up with your reviews!',
+              style: TextStyle(fontSize: 14, color: Color(0xFF94A3B8)),
+            ),
+            const SizedBox(height: 32),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF64748B),
+                    side: const BorderSide(color: Color(0xFFE2E8F0)),
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Exit'),
+                ),
+                const SizedBox(width: 12),
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF6366F1).withValues(alpha: 0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(12),
+                      onTap: () {
+                        setState(() {
+                          _currentIndex = 0;
+                          _isFlipped = false;
+                        });
+                      },
+                      child: const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        child: Text('Study Again', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   // Helper widget to construct clean card faces
   Widget _buildCardFace(String text, {required bool isFront}) {
+    final Color accentColor = isFront ? const Color(0xFF6366F1) : const Color(0xFF10B981);
+
     return Container(
       width: MediaQuery.of(context).size.width * 0.88,
       height: 420,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: accentColor.withValues(alpha: 0.25),
+          width: 2,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
+            color: accentColor.withValues(alpha: 0.1),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
       child: Stack(
         children: [
+          // Subtle gradient accent at top
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              height: 4,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: isFront
+                      ? [const Color(0xFF6366F1), const Color(0xFF8B5CF6)]
+                      : [const Color(0xFF10B981), const Color(0xFF06B6D4)],
+                ),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(24),
+                  topRight: Radius.circular(24),
+                ),
+              ),
+            ),
+          ),
           // Label
           Positioned(
-            top: 20,
+            top: 24,
             left: 0,
             right: 0,
             child: Center(
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
                 decoration: BoxDecoration(
-                  color: isFront
-                      ? const Color(0xFF4F46E5).withValues(alpha: 0.08)
-                      : const Color(0xFF16A34A).withValues(alpha: 0.08),
+                  color: accentColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
                   isFront ? 'QUESTION' : 'ANSWER',
                   style: TextStyle(
-                    color: isFront ? const Color(0xFF4F46E5) : const Color(0xFF16A34A),
+                    color: accentColor,
                     letterSpacing: 1.5,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
                     fontSize: 11,
                   ),
                 ),
@@ -423,17 +514,21 @@ class _StudyScreenState extends State<StudyScreen> {
             ),
           ),
           // Tap hint
-          const Positioned(
+          Positioned(
             bottom: 20,
             left: 0,
             right: 0,
             child: Center(
-              child: Text(
-                'Tap to flip',
-                style: TextStyle(
-                  color: Color(0xFF94A3B8),
-                  fontSize: 12,
-                ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.touch_app_outlined, size: 14, color: const Color(0xFF94A3B8).withValues(alpha: 0.6)),
+                  const SizedBox(width: 4),
+                  const Text(
+                    'Tap to flip',
+                    style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
+                  ),
+                ],
               ),
             ),
           ),
@@ -444,23 +539,34 @@ class _StudyScreenState extends State<StudyScreen> {
 
   Widget _buildGradeButton(int grade, String label, Color color) {
     return SizedBox(
-      height: 52,
-      child: ElevatedButton(
-        onPressed: () => _handleGrade(grade),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color.withValues(alpha: 0.1),
-          foregroundColor: color,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: BorderSide(color: color.withValues(alpha: 0.3), width: 1.5),
-          ),
-        ),
-        child: Text(
-          label,
-          style: const TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 15,
+      height: 54,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: () => _handleGrade(grade),
+          child: Container(
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: [
+                BoxShadow(
+                  color: color.withValues(alpha: 0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Center(
+              child: Text(
+                label,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 15,
+                  color: Colors.white,
+                ),
+              ),
+            ),
           ),
         ),
       ),
@@ -474,8 +580,8 @@ class _StudyScreenState extends State<StudyScreen> {
   }
 
   Color _getDifficultyColor(double easeFactor) {
-    if (easeFactor < 2.0) return const Color(0xFFDC2626);
-    if (easeFactor > 2.6) return const Color(0xFF16A34A);
+    if (easeFactor < 2.0) return const Color(0xFFEF4444);
+    if (easeFactor > 2.6) return const Color(0xFF10B981);
     return const Color(0xFFF59E0B);
   }
 }

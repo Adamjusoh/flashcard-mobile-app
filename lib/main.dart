@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'firebase_options.dart';
 
 // Import your screens
 import 'screens/auth_screen.dart';
 import 'screens/main_tab_controller.dart';
-
-
 
 void main() async {
   // Ensure that Flutter bindings are initialized before calling Firebase
@@ -25,33 +24,43 @@ class RecallApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = GoogleFonts.poppinsTextTheme(
+      Theme.of(context).textTheme,
+    );
+
     return MaterialApp(
       title: 'Recall - Smart Flashcards',
-      debugShowCheckedModeBanner: false, // Removes the red 'DEBUG' banner
+      debugShowCheckedModeBanner: false,
 
-      // Clean, modern light theme
+      // Vibrant, student-friendly theme
       theme: ThemeData(
         useMaterial3: true,
         brightness: Brightness.light,
-        fontFamily: 'Roboto',
+        textTheme: textTheme,
         scaffoldBackgroundColor: const Color(0xFFF8FAFC),
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF4F46E5),
+          seedColor: const Color(0xFF6366F1),
           brightness: Brightness.light,
-          primary: const Color(0xFF4F46E5),
+          primary: const Color(0xFF6366F1),
           onPrimary: Colors.white,
+          secondary: const Color(0xFF8B5CF6),
           surface: Colors.white,
           onSurface: const Color(0xFF0F172A),
-          error: const Color(0xFFDC2626),
+          error: const Color(0xFFEF4444),
         ),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFFF8FAFC),
-          foregroundColor: Color(0xFF0F172A),
+        appBarTheme: AppBarTheme(
+          backgroundColor: const Color(0xFFF8FAFC),
+          foregroundColor: const Color(0xFF0F172A),
           elevation: 0,
           scrolledUnderElevation: 0.5,
+          titleTextStyle: GoogleFonts.poppins(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: const Color(0xFF0F172A),
+          ),
         ),
         cardTheme: CardThemeData(
-          elevation: 1,
+          elevation: 0,
           color: Colors.white,
           surfaceTintColor: Colors.transparent,
           shape: RoundedRectangleBorder(
@@ -62,40 +71,48 @@ class RecallApp extends StatelessWidget {
           filled: true,
           fillColor: const Color(0xFFF1F5F9),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(14),
             borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(14),
             borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Color(0xFF4F46E5), width: 2),
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: Color(0xFF6366F1), width: 2),
           ),
           errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Color(0xFFDC2626)),
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: Color(0xFFEF4444)),
           ),
           labelStyle: const TextStyle(color: Color(0xFF64748B)),
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF4F46E5),
+            backgroundColor: const Color(0xFF6366F1),
             foregroundColor: Colors.white,
             elevation: 0,
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(14),
             ),
-            textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            textStyle: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600),
           ),
         ),
         textButtonTheme: TextButtonThemeData(
           style: TextButton.styleFrom(
-            foregroundColor: const Color(0xFF4F46E5),
+            foregroundColor: const Color(0xFF6366F1),
+            textStyle: GoogleFonts.poppins(fontWeight: FontWeight.w500),
           ),
+        ),
+        pageTransitionsTheme: const PageTransitionsTheme(
+          builders: {
+            TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+            TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+            TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+          },
         ),
       ),
 
@@ -108,7 +125,7 @@ class RecallApp extends StatelessWidget {
             return const Scaffold(
               backgroundColor: Color(0xFFF8FAFC),
               body: Center(
-                child: CircularProgressIndicator(color: Color(0xFF4F46E5)),
+                child: CircularProgressIndicator(color: Color(0xFF6366F1)),
               ),
             );
           }
