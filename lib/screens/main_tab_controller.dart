@@ -10,11 +10,28 @@ class MainTabController extends StatefulWidget {
   const MainTabController({super.key});
 
   @override
-  _MainTabControllerState createState() => _MainTabControllerState();
+  State<MainTabController> createState() => _MainTabControllerState();
 }
 
-class _MainTabControllerState extends State<MainTabController> {
+class _MainTabControllerState extends State<MainTabController> with TickerProviderStateMixin {
   int _currentIndex = 0;
+  late final AnimationController _fabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _fabController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    _fabController.forward();
+  }
+
+  @override
+  void dispose() {
+    _fabController.dispose();
+    super.dispose();
+  }
 
   // The screens are dynamically generated so QRScannerScreen knows when it's active
   List<Widget> get _screens => [
@@ -38,40 +55,69 @@ class _MainTabControllerState extends State<MainTabController> {
         index: _currentIndex,
         children: _screens,
       ),
-      // Clean FAB for direct deck creation
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const AddEditDeckScreen()),
-          );
-        },
-        backgroundColor: const Color(0xFF4F46E5),
-        foregroundColor: Colors.white,
-        elevation: 3,
-        shape: const CircleBorder(),
-        child: const Icon(Icons.add, size: 28),
+      // Gradient FAB with bounce animation
+      floatingActionButton: ScaleTransition(
+        scale: CurvedAnimation(parent: _fabController, curve: Curves.elasticOut),
+        child: Container(
+          height: 58,
+          width: 58,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: const LinearGradient(
+              colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF6366F1).withValues(alpha: 0.4),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(29),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AddEditDeckScreen()),
+                );
+              },
+              child: const Icon(Icons.add_rounded, color: Colors.white, size: 28),
+            ),
+          ),
+        ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      // Clean Bottom Navigation Bar
-      bottomNavigationBar: BottomAppBar(
-        height: 68,
-        padding: EdgeInsets.zero,
-        color: Colors.white,
-        surfaceTintColor: Colors.transparent,
-        elevation: 20,
-        shadowColor: Colors.black.withValues(alpha: 0.2),
-        notchMargin: 8,
-        shape: const CircularNotchedRectangle(),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildNavItem(icon: Icons.home_outlined, activeIcon: Icons.home_rounded, label: 'Home', index: 0),
-            _buildNavItem(icon: Icons.qr_code_scanner_outlined, activeIcon: Icons.qr_code_scanner_rounded, label: 'Scan', index: 1),
-            const SizedBox(width: 48), // Space for the FAB
-            _buildNavItem(icon: Icons.explore_outlined, activeIcon: Icons.explore_rounded, label: 'Explore', index: 2),
-            _buildNavItem(icon: Icons.person_outline, activeIcon: Icons.person_rounded, label: 'Profile', index: 3),
+      // Vibrant bottom navigation bar
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 20,
+              offset: const Offset(0, -4),
+            ),
           ],
+        ),
+        child: SafeArea(
+          child: SizedBox(
+            height: 64,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildNavItem(icon: Icons.home_outlined, activeIcon: Icons.home_rounded, label: 'Home', index: 0),
+                _buildNavItem(icon: Icons.qr_code_scanner_outlined, activeIcon: Icons.qr_code_scanner_rounded, label: 'Scan', index: 1),
+                const SizedBox(width: 56), // Space for the FAB
+                _buildNavItem(icon: Icons.explore_outlined, activeIcon: Icons.explore_rounded, label: 'Explore', index: 2),
+                _buildNavItem(icon: Icons.person_outline, activeIcon: Icons.person_rounded, label: 'Profile', index: 3),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -92,18 +138,27 @@ class _MainTabControllerState extends State<MainTabController> {
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              isActive ? activeIcon : icon,
-              size: 24,
-              color: isActive ? const Color(0xFF4F46E5) : const Color(0xFF94A3B8),
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeInOut,
+              padding: EdgeInsets.symmetric(horizontal: isActive ? 16 : 8, vertical: 6),
+              decoration: BoxDecoration(
+                color: isActive ? const Color(0xFF6366F1).withValues(alpha: 0.12) : Colors.transparent,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Icon(
+                isActive ? activeIcon : icon,
+                size: 22,
+                color: isActive ? const Color(0xFF6366F1) : const Color(0xFF94A3B8),
+              ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 2),
             Text(
               label,
               style: TextStyle(
-                fontSize: 11,
-                fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
-                color: isActive ? const Color(0xFF4F46E5) : const Color(0xFF94A3B8),
+                fontSize: 10,
+                fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+                color: isActive ? const Color(0xFF6366F1) : const Color(0xFF94A3B8),
               ),
             ),
           ],

@@ -2,18 +2,29 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+// Curated pastel palette for community deck cards
+const List<Color> _communityColors = [
+  Color(0xFFA78BFA), // Violet
+  Color(0xFFF472B6), // Pink
+  Color(0xFF38BDF8), // Sky
+  Color(0xFF34D399), // Emerald
+  Color(0xFFFBBF24), // Amber
+  Color(0xFFF87171), // Red
+  Color(0xFF2DD4BF), // Teal
+  Color(0xFF818CF8), // Indigo
+];
+
 class CommunityScreen extends StatefulWidget {
   const CommunityScreen({super.key});
 
   @override
-  _CommunityScreenState createState() => _CommunityScreenState();
+  State<CommunityScreen> createState() => _CommunityScreenState();
 }
 
 class _CommunityScreenState extends State<CommunityScreen> {
   final String _currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
-  String? _downloadingDeckId; // Tracks which deck is currently downloading to show a spinner
+  String? _downloadingDeckId;
 
-  // Fetches a username string from Firestore given a uid
   Future<String> _fetchUsername(String uid) async {
     try {
       final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
@@ -23,57 +34,56 @@ class _CommunityScreenState extends State<CommunityScreen> {
     }
   }
 
-  // Logic to duplicate a public deck to the user's private library
+  Color _colorFromTitle(String title) {
+    int hash = title.hashCode.abs();
+    return _communityColors[hash % _communityColors.length];
+  }
+
   Future<void> _downloadDeck(String originalDeckId, String originalTitle) async {
     setState(() => _downloadingDeckId = originalDeckId);
 
     final firestore = FirebaseFirestore.instance;
 
     try {
-      // 1. Fetch all cards inside the public deck
       final originalCardsSnapshot = await firestore
           .collection('decks')
           .doc(originalDeckId)
           .collection('cards')
           .get();
 
-      // 2. Prepare a Firestore WriteBatch
       final batch = firestore.batch();
-
-      // 3. Create a reference for the NEW private deck
       final newDeckRef = firestore.collection('decks').doc();
-      
+
       batch.set(newDeckRef, {
         'title': '$originalTitle (Downloaded)',
-        'authorId': _currentUserId, 
-        'isPublic': false, // Keep the downloaded copy private in the user's library
+        'authorId': _currentUserId,
+        'isPublic': false,
         'createdAt': Timestamp.now(),
       });
 
-      // 4. Loop through original cards and duplicate them
       for (var cardDoc in originalCardsSnapshot.docs) {
         final newCardRef = newDeckRef.collection('cards').doc();
         final cardData = cardDoc.data();
-        
+
         batch.set(newCardRef, {
           'front': cardData['front'],
           'back': cardData['back'],
-          // Reset SM-2 algorithm stats for the new student
           'interval': 0,
           'repetitions': 0,
           'easeFactor': 2.5,
-          'nextReviewDate': Timestamp.now(), 
+          'nextReviewDate': Timestamp.now(),
         });
       }
 
-      // 5. Execute the batch write
       await batch.commit();
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Deck saved to your library!'),
-            backgroundColor: Color(0xFF16A34A),
+          SnackBar(
+            content: const Text('Deck saved to your library! 🎉'),
+            backgroundColor: const Color(0xFF10B981),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
         );
       }
@@ -82,7 +92,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to download deck: $e'),
-            backgroundColor: const Color(0xFFDC2626),
+            backgroundColor: const Color(0xFFEF4444),
           ),
         );
       }
@@ -101,33 +111,45 @@ class _CommunityScreenState extends State<CommunityScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Padding(
-              padding: EdgeInsets.fromLTRB(24, 24, 24, 8),
+            // Gradient header
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFF8B5CF6), Color(0xFFA78BFA)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(28),
+                  bottomRight: Radius.circular(28),
+                ),
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Explore',
+                  const Text(
+                    'Explore 🌎',
                     style: TextStyle(
-                      fontSize: 28,
+                      fontSize: 26,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF0F172A),
+                      color: Colors.white,
                     ),
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Text(
-                    'Discover public decks shared by Educators.',
+                    'Discover decks shared by Educators',
                     style: TextStyle(
                       fontSize: 15,
-                      color: Color(0xFF64748B),
+                      color: Colors.white.withValues(alpha: 0.85),
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 16),
             Expanded(
-              // READ OPERATION: Querying only public decks
               child: StreamBuilder<QuerySnapshot>(
                 stream: FirebaseFirestore.instance
                     .collection('decks')
@@ -136,17 +158,25 @@ class _CommunityScreenState extends State<CommunityScreen> {
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(
-                        child: CircularProgressIndicator(color: Color(0xFF4F46E5)));
+                        child: CircularProgressIndicator(color: Color(0xFF8B5CF6)));
                   }
 
                   if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                    return const Center(
+                    return Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.explore_outlined, size: 56, color: Color(0xFF94A3B8)),
-                          SizedBox(height: 12),
-                          Text(
+                          Container(
+                            height: 72,
+                            width: 72,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF8B5CF6).withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(18),
+                            ),
+                            child: const Icon(Icons.explore_outlined, size: 36, color: Color(0xFF8B5CF6)),
+                          ),
+                          const SizedBox(height: 16),
+                          const Text(
                             'No public decks available right now.',
                             style: TextStyle(color: Color(0xFF64748B), fontSize: 15),
                           ),
@@ -165,8 +195,6 @@ class _CommunityScreenState extends State<CommunityScreen> {
                       String deckId = publicDecks[index].id;
                       String title = deckData['title'] ?? 'Untitled Deck';
                       String authorId = deckData['authorId'] ?? '';
-                      
-                      // Don't show the download button if the user actually created this public deck
                       bool isOwner = deckData['authorId'] == _currentUserId;
 
                       return _buildCommunityCard(
@@ -186,7 +214,6 @@ class _CommunityScreenState extends State<CommunityScreen> {
     );
   }
 
-  // Clean community deck card
   Widget _buildCommunityCard({
     required String title,
     required String deckId,
@@ -194,34 +221,53 @@ class _CommunityScreenState extends State<CommunityScreen> {
     required bool isOwner,
   }) {
     bool isDownloading = _downloadingDeckId == deckId;
+    Color accent = _colorFromTitle(title);
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10.0),
-      child: Card(
-        elevation: 4,
-        shadowColor: Colors.black.withValues(alpha: 0.08),
-        color: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-          side: const BorderSide(color: Color(0xFFE2E8F0), width: 1),
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: accent.withValues(alpha: 0.1),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
+            ),
+          ],
+          border: Border.all(color: const Color(0xFFF1F5F9), width: 1),
         ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-          child: Row(
-            children: [
-              // Icon
-              Container(
-                height: 44,
-                width: 44,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF0ABFC).withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(11),
+        child: Row(
+          children: [
+            // Accent strip
+            Container(
+              width: 5,
+              height: 76,
+              decoration: BoxDecoration(
+                color: accent,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  bottomLeft: Radius.circular(16),
                 ),
-                child: const Icon(Icons.public_rounded, color: Color(0xFFA855F7), size: 22),
               ),
-              const SizedBox(width: 14),
-              // Title and label
-              Expanded(
+            ),
+            const SizedBox(width: 14),
+            // Icon
+            Container(
+              height: 44,
+              width: 44,
+              decoration: BoxDecoration(
+                color: accent.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(Icons.public_rounded, color: accent, size: 22),
+            ),
+            const SizedBox(width: 14),
+            // Title and label
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 14),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -239,9 +285,9 @@ class _CommunityScreenState extends State<CommunityScreen> {
                       builder: (context, snapshot) {
                         final username = snapshot.data ?? '...';
                         return Text(
-                          'by $username · Community Deck',
+                          'by $username',
                           style: const TextStyle(
-                            color: Color(0xFF64748B),
+                            color: Color(0xFF94A3B8),
                             fontSize: 13,
                           ),
                         );
@@ -250,44 +296,47 @@ class _CommunityScreenState extends State<CommunityScreen> {
                   ],
                 ),
               ),
-              // Action
-              if (isOwner)
-                Tooltip(
-                  message: 'You own this deck',
-                  child: Container(
-                    height: 36,
-                    width: 36,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF1F5F9),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(Icons.person_rounded, color: Color(0xFF94A3B8), size: 18),
-                  ),
-                )
-              else
-                SizedBox(
-                  height: 36,
-                  width: 36,
-                  child: isDownloading
-                      ? const Padding(
-                          padding: EdgeInsets.all(6),
-                          child: CircularProgressIndicator(
-                            color: Color(0xFF4F46E5),
-                            strokeWidth: 2.5,
+            ),
+            // Action
+            Padding(
+              padding: const EdgeInsets.only(right: 14),
+              child: isOwner
+                  ? Container(
+                      height: 36,
+                      width: 36,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(Icons.person_rounded, color: Color(0xFF94A3B8), size: 18),
+                    )
+                  : isDownloading
+                      ? const SizedBox(
+                          height: 36,
+                          width: 36,
+                          child: Padding(
+                            padding: EdgeInsets.all(6),
+                            child: CircularProgressIndicator(
+                              color: Color(0xFF8B5CF6),
+                              strokeWidth: 2.5,
+                            ),
                           ),
                         )
-                      : IconButton(
-                          padding: EdgeInsets.zero,
-                          icon: const Icon(
-                            Icons.download_rounded,
-                            color: Color(0xFF4F46E5),
-                            size: 22,
+                      : Container(
+                          height: 36,
+                          width: 36,
+                          decoration: BoxDecoration(
+                            color: accent.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(10),
                           ),
-                          onPressed: () => _downloadDeck(deckId, title),
+                          child: IconButton(
+                            padding: EdgeInsets.zero,
+                            icon: Icon(Icons.download_rounded, color: accent, size: 20),
+                            onPressed: () => _downloadDeck(deckId, title),
+                          ),
                         ),
-                ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

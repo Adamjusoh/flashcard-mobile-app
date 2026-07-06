@@ -74,7 +74,7 @@ class Flashcard {
 
   /// Helper to check if a card is currently due.
   bool isDue() {
-    if (interval == 0 || nextReviewDate == null) return true; // New or hard cards are inherently due
+    if (interval == 0 || nextReviewDate == null) return true;
     final now = DateTime.now();
     return nextReviewDate!.isBefore(now) || nextReviewDate!.isAtSameMomentAs(now);
   }
