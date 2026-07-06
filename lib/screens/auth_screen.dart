@@ -84,9 +84,15 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
       }
     } on FirebaseAuthException catch (err) {
       var message = 'An error occurred, please check your credentials!';
-      if (err.message != null) {
+      if (err.code == 'invalid-credential' || 
+          err.code == 'wrong-password' || 
+          err.code == 'user-not-found' ||
+          (err.message?.contains('auth credential is incorrect, malformed or has expired') ?? false)) {
+        message = 'Wrong email or password';
+      } else if (err.message != null) {
         message = err.message!;
       }
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -272,10 +278,13 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                                         ),
                                         obscureText: true,
                                         validator: (value) {
-                                          if (value == null || value.isEmpty || value.length < 8) {
-                                            return 'Password must be at least 8 characters long.';
+                                          if (value == null || value.isEmpty) {
+                                            return 'Please enter a password.';
                                           }
                                           if (!_isLogin) {
+                                            if (value.length < 8) {
+                                              return 'Password must be at least 8 characters long.';
+                                            }
                                             if (!RegExp(r'[A-Z]').hasMatch(value)) {
                                               return 'Password must contain at least 1 uppercase letter.';
                                             }
