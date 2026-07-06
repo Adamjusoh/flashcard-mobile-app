@@ -55,7 +55,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
       final newDeckRef = firestore.collection('decks').doc();
 
       batch.set(newDeckRef, {
-        'title': '$originalTitle (Downloaded)',
+        'title': originalTitle,
         'authorId': _currentUserId,
         'isPublic': false,
         'createdAt': Timestamp.now(),

@@ -2,6 +2,9 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../utils/sm2_algorithm.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../models/flashcard.dart';
 
 class StudyScreen extends StatefulWidget {
   final String deckId;
@@ -25,7 +28,7 @@ class _StudyScreenState extends State<StudyScreen> {
     _fetchAllCardsAndSort();
   }
 
-  // 1. Fetch ALL cards (No locking) and sort by Difficulty
+  // 1. Fetch Due cards and sort by Difficulty
   Future<void> _fetchAllCardsAndSort() async {
     try {
       final snapshot = await FirebaseFirestore.instance
@@ -34,7 +37,12 @@ class _StudyScreenState extends State<StudyScreen> {
           .collection('cards')
           .get();
 
-      List<QueryDocumentSnapshot> cards = snapshot.docs.toList();
+      List<QueryDocumentSnapshot> allDocs = snapshot.docs.toList();
+      
+      // Filter for cards that are due
+      List<QueryDocumentSnapshot> cards = allDocs.where((doc) {
+        return Flashcard.fromFirestore(doc).isDue();
+      }).toList();
 
       // Sort locally: Hardest cards (lowest easeFactor) appear first!
       cards.sort((a, b) {
@@ -85,6 +93,50 @@ class _StudyScreenState extends State<StudyScreen> {
       _isFlipped = false;
       _currentIndex++;
     });
+    
+    // Check if we just finished the deck
+    if (_currentIndex >= _allCards.length && _allCards.isNotEmpty) {
+      _updateStreak();
+    }
+  }
+
+  Future<void> _updateStreak() async {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null) return;
+    
+    final userRef = FirebaseFirestore.instance.collection('users').doc(userId);
+    final userDoc = await userRef.get();
+    
+    if (userDoc.exists) {
+      final data = userDoc.data()!;
+      final lastStudyDate = (data['lastStudyDate'] as Timestamp?)?.toDate();
+      int currentStreak = data['currentStreak'] ?? 0;
+      
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      
+      if (lastStudyDate != null) {
+        final lastDate = DateTime(lastStudyDate.year, lastStudyDate.month, lastStudyDate.day);
+        final difference = today.difference(lastDate).inDays;
+        
+        if (difference == 1) {
+          // Studied yesterday, increment streak
+          currentStreak += 1;
+        } else if (difference > 1) {
+          // Missed a day, reset streak
+          currentStreak = 1;
+        }
+        // if difference == 0, already studied today, do nothing to streak
+      } else {
+        // First time studying
+        currentStreak = 1;
+      }
+      
+      await userRef.update({
+        'lastStudyDate': Timestamp.fromDate(now),
+        'currentStreak': currentStreak,
+      });
+    }
   }
 
   @override
@@ -501,14 +553,23 @@ class _StudyScreenState extends State<StudyScreen> {
           Center(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 28.0, vertical: 60),
-              child: Text(
-                text,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF0F172A),
-                  height: 1.4,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    MarkdownBody(
+                      data: text,
+                      styleSheet: MarkdownStyleSheet(
+                        p: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF0F172A),
+                          height: 1.4,
+                        ),
+                        textAlign: WrapAlignment.center,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

@@ -208,7 +208,7 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 4),
-                  // Card count from stream below
+                  // Card count and stats from stream below
                   StreamBuilder<QuerySnapshot>(
                     stream: FirebaseFirestore.instance
                         .collection('decks')
@@ -216,13 +216,43 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
                         .collection('cards')
                         .snapshots(),
                     builder: (context, snapshot) {
-                      final count = snapshot.data?.docs.length ?? 0;
-                      return Text(
-                        '$count cards',
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.8),
-                          fontSize: 14,
-                        ),
+                      final cards = snapshot.data?.docs ?? [];
+                      final count = cards.length;
+                      
+                      int newCount = 0;
+                      int learningCount = 0;
+                      int reviewCount = 0;
+                      
+                      for (var doc in cards) {
+                        final card = Flashcard.fromFirestore(doc);
+                        if (card.masteryLevel == MasteryLevel.newCard) newCount++;
+                        else if (card.masteryLevel == MasteryLevel.learning) learningCount++;
+                        else reviewCount++;
+                      }
+                      
+                      return Column(
+                        children: [
+                          Text(
+                            '$count cards',
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.8),
+                              fontSize: 14,
+                            ),
+                          ),
+                          if (count > 0) ...[
+                            const SizedBox(height: 12),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                _buildStatPill('New', newCount, const Color(0xFF3B82F6)),
+                                const SizedBox(width: 8),
+                                _buildStatPill('Learning', learningCount, const Color(0xFFF59E0B)),
+                                const SizedBox(width: 8),
+                                _buildStatPill('Review', reviewCount, const Color(0xFF10B981)),
+                              ],
+                            ),
+                          ]
+                        ],
                       );
                     },
                   ),
@@ -371,6 +401,30 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
                 ),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatPill(String label, int count, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          Text(
+            '$count',
+            style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(color: Colors.white.withValues(alpha: 0.9), fontSize: 11),
           ),
         ],
       ),
